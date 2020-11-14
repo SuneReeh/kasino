@@ -18,7 +18,7 @@ trait SuitedCard extends Card {
 
   override def isSpades: Boolean = suit.isSpades
 
-  override def isFiveOfSpades: Boolean = isSpades && (rank.ordinal() == 5)
+  override def isFiveOfSpades: Boolean = isSpades && (rank.ordinal == 5)
 }
 
 /**
@@ -32,10 +32,10 @@ trait SuitedCardCompanion[+C <: SuitedCard] extends CardCompanion[C] {
   
   def apply(suit: Suit, rank: Rank): SuitedCard
   
-  protected trait SuitTrait extends java.lang.Enum[SuitTrait] with scala.reflect.Enum {
+  protected trait SuitTrait extends scala.reflect.Enum {
     def isSpades: Boolean
   }
   
-  protected trait RankTrait extends java.lang.Enum[RankTrait] with scala.reflect.Enum {
+  protected[kasino] trait RankTrait extends scala.reflect.Enum {
   }
 }
