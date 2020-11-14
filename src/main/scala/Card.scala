@@ -2,7 +2,7 @@ trait Card {
   /**
    * @return The companion object of the class implementing Card
    */
-  def companion: CardCompanion[Card]
+  val companion: CardCompanion[Card]
   
   /**
    * @return The set of possible values that the Card can be used as.
@@ -19,6 +19,11 @@ trait Card {
   def isSpades: Boolean
 }
 
+/**
+ * Trait required to be implemented by a companion object associated to any class implemeting Card.
+ * 
+ * @tparam C The class implementing Card
+ */
 trait CardCompanion[+C <: Card] {
   def apply(string: String): C = stringToCard(string)
   
