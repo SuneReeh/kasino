@@ -1,3 +1,5 @@
+package kasino
+
 trait SuitedCard extends Card {
   /**
    * @return The companion object of the class implementing SuitedCard

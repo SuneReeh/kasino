@@ -1,3 +1,5 @@
+package kasino
+
 trait Card {
   /**
    * @return The companion object of the class implementing Card
