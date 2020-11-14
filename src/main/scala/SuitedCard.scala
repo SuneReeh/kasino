@@ -9,12 +9,12 @@ trait SuitedCard extends Card {
   /**
    * @return The suit of the card
    */
-  def suit: companion.SuitTrait
+  def suit: companion.Suit
 
   /**
    * @return The rank of the card
    */
-  def rank: companion.RankTrait
+  def rank: companion.Rank
 
   override def isSpades: Boolean = suit.isSpades
 
@@ -27,10 +27,15 @@ trait SuitedCard extends Card {
  * @tparam C The class implementing SuitedCard
  */
 trait SuitedCardCompanion[+C <: SuitedCard] extends CardCompanion[C] {
-  protected[kasino] trait SuitTrait extends java.lang.Enum[SuitTrait] with scala.reflect.Enum {
+  type Suit <: SuitTrait
+  type Rank <: RankTrait
+  
+  def apply(suit: Suit, rank: Rank): SuitedCard
+  
+  protected trait SuitTrait extends java.lang.Enum[SuitTrait] with scala.reflect.Enum {
     def isSpades: Boolean
   }
   
-  protected[kasino] trait RankTrait extends java.lang.Enum[RankTrait] with scala.reflect.Enum {
+  protected trait RankTrait extends java.lang.Enum[RankTrait] with scala.reflect.Enum {
   }
 }
