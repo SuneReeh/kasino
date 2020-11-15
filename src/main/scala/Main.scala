@@ -9,5 +9,6 @@ object Main {
     println(ModernCard("SIX of hearts"))
     println(ModernCard("ten of spades").values)
     println(ModernCard("ten of hearts").points)
+    println(scala.util.Random.shuffle(ModernCard.newDeck))
   }
 }

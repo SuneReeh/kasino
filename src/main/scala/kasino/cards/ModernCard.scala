@@ -60,4 +60,23 @@ object ModernCard extends SuitedCardCompanion[ModernCard] {
     val Array(rankString,suitString) = string.split(" of ", 2)
     ModernCard(Suit.valueOf(suitString.toLowerCase.capitalize), Rank.valueOf(rankString.toLowerCase.capitalize))
   }
+
+  override def newDeck: Seq[ModernCard] = {
+    var deck: Seq[ModernCard] = for {
+      suit <- Suit.values.toSeq if suit != Suit.Joker
+      rank <- Rank.values.toSeq if rank != Rank.Zero
+    } yield ModernCard(suit,rank)
+    deck = deck :+ ModernCard("Joker")
+    deck = deck :+ ModernCard("Joker")
+    deck = deck :+ ModernCard("Joker")
+    deck
+  }
+  
+  def newDeckWithoutJokers: Seq[ModernCard] = {
+    var deck: Seq[ModernCard] = for {
+      suit <- Suit.values.toSeq if suit != Suit.Joker
+      rank <- Rank.values.toSeq if rank != Rank.Zero
+    } yield ModernCard(suit, rank)
+    deck
+  }
 }

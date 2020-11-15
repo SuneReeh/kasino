@@ -30,4 +30,6 @@ trait CardCompanion[+C <: Card] {
   def apply(string: String): C = stringToCard(string)
   
   def stringToCard(string: String): C
+  
+  def newDeck: Seq[C]
 }
