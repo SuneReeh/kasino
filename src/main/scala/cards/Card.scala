@@ -1,7 +1,5 @@
 package kasino.cards
 
-import kasino.{Card, CardCompanion}
-
 trait Card {
   /**
    * @return The companion object of the class implementing Card

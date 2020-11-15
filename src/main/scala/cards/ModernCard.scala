@@ -50,7 +50,7 @@ object ModernCard extends SuitedCardCompanion[ModernCard] {
     override def isSpades: Boolean = this == Spades
   }
   
-  enum Rank extends RankTrait 
+  enum Rank extends RankTrait
   {
     case Zero, Ace, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King
   }
