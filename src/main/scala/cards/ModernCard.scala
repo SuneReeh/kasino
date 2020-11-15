@@ -1,6 +1,4 @@
-package kasino.decks
-
-import kasino.{SuitedCard, SuitedCardCompanion}
+package kasino.cards
 
 
 case class ModernCard (val suit: ModernCard.Suit, val rank: ModernCard.Rank) extends SuitedCard {
@@ -13,7 +11,7 @@ case class ModernCard (val suit: ModernCard.Suit, val rank: ModernCard.Rank) ext
    * @return The set of possible values that the Card can be used as.
    */
   override val values: Set[Int] = {
-    var tempValues = Set[Int](rank.ordinal())
+    var tempValues = Set[Int](rank.ordinal)
     (suit, rank) match {
       case (_, ModernCard.Rank.Ace) => tempValues += 14
       case (ModernCard.Suit.Spades, ModernCard.Rank.Two) => tempValues += 15
@@ -45,13 +43,15 @@ case class ModernCard (val suit: ModernCard.Suit, val rank: ModernCard.Rank) ext
 object ModernCard extends SuitedCardCompanion[ModernCard] {
   override def apply(suit: Suit, rank: Rank): ModernCard = new ModernCard(suit,rank)
 
-  enum Suit extends java.lang.Enum[Suit] with SuitTrait {
+  enum Suit extends SuitTrait 
+  {
     case Clubs, Diamonds, Hearts, Spades, Joker
 
     override def isSpades: Boolean = this == Spades
   }
   
-  enum Rank extends java.lang.Enum[Rank] with RankTrait {
+  enum Rank extends RankTrait 
+  {
     case Zero, Ace, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King
   }
   

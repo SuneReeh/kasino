@@ -1,4 +1,4 @@
-import kasino.decks._
+import kasino.cards._
 
 object Main {
   def main(args: Array[String]): Unit = {

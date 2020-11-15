@@ -1,4 +1,6 @@
-package kasino
+package kasino.cards
+
+import kasino.{Card, CardCompanion}
 
 trait Card {
   /**

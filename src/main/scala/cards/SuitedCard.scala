@@ -1,4 +1,4 @@
-package kasino
+package kasino.cards
 
 trait SuitedCard extends Card {
   /**
@@ -32,10 +32,10 @@ trait SuitedCardCompanion[+C <: SuitedCard] extends CardCompanion[C] {
   
   def apply(suit: Suit, rank: Rank): SuitedCard
   
-  protected trait SuitTrait extends scala.reflect.Enum {
+  protected[kasino] trait SuitTrait extends java.lang.Enum[SuitTrait] with scala.reflect.Enum {
     def isSpades: Boolean
   }
   
-  protected[kasino] trait RankTrait extends scala.reflect.Enum {
+  protected[kasino] trait RankTrait extends java.lang.Enum[RankTrait] with scala.reflect.Enum {
   }
 }
