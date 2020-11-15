@@ -2,7 +2,7 @@ package kasino.cards
 
 case class ModernCard (val suit: ModernCard.Suit, val rank: ModernCard.Rank) extends SuitedCard {
   /**
-   * @return The companion object of the class implementing SuitedCard
+   * @return The companion object of ModernCard
    */
   override val companion: ModernCard.type = ModernCard
 
