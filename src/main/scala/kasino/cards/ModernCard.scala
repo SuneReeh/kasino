@@ -42,14 +42,14 @@ case class ModernCard (val suit: ModernCard.Suit, val rank: ModernCard.Rank) ext
 object ModernCard extends SuitedCardCompanion[ModernCard] {
   override def apply(suit: Suit, rank: Rank): ModernCard = new ModernCard(suit,rank)
 
-  enum Suit extends SuitTrait 
+  enum Suit extends java.lang.Enum[Suit] with SuitTrait 
   {
     case Clubs, Diamonds, Hearts, Spades, Joker
 
     override def isSpades: Boolean = this == Spades
   }
   
-  enum Rank extends RankTrait
+  enum Rank extends java.lang.Enum[Rank] with RankTrait
   {
     case Zero, Ace, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King
   }

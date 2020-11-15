@@ -30,16 +30,14 @@ trait SuitedCardCompanion[+C <: SuitedCard] extends CardCompanion[C] {
   type Suit <: SuitTrait
   type Rank <: RankTrait
 
-  def apply(suit: Suit, rank: Rank): SuitedCard
+  def apply(suit: Suit, rank: Rank): C
+}
 
-  protected[kasino] trait SuitTrait extends java.lang.Enum[SuitTrait] with scala.reflect.Enum {
-    def isSpades: Boolean
-  }
+private trait SuitTrait extends scala.reflect.Enum {
+  def isSpades: Boolean
+}
 
-  protected[kasino] trait RankTrait extends java.lang.Enum[RankTrait] with scala.reflect.Enum {
-  }
-
-
+private trait RankTrait extends scala.reflect.Enum {
 }
 
 
