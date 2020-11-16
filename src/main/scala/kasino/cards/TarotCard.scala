@@ -43,7 +43,7 @@ case class TarotCard(val suit: TarotCard.Suit, val rank: TarotCard.Rank, isAlsoZ
 
   override def toString: String = {
     if suit != TarotCard.Suit.Joker then return s"$rank of $suit"
-    rank.ordinal match {
+    val name = rank.ordinal match {
       case 0 => "The Fool"
       case 1 => "The Magician"
       case 2 => "The High Priestess"
@@ -67,6 +67,7 @@ case class TarotCard(val suit: TarotCard.Suit, val rank: TarotCard.Rank, isAlsoZ
       case 20 => "Judgement"
       case 21 => "The Universe"
     }
+    name + (if isAlsoZero then " (0)" else "")
   }
 }
 
@@ -74,6 +75,8 @@ object TarotCard extends SuitedCardCompanion[TarotCard] {
   override def apply(suit: Suit, rank: Rank): TarotCard = new TarotCard(suit, rank)
 
   def apply(suit: Suit, rank: Rank, isAlsoZero: Boolean = false): TarotCard = new TarotCard(suit, rank, isAlsoZero)
+
+  def apply(string: String, isAlsoZero: Boolean): TarotCard = stringToCard(string, isAlsoZero)
 
   enum Suit extends java.lang.Enum[Suit] with SuitTrait {
     case Staves, Coins, Cups, Swords, Joker
@@ -87,45 +90,51 @@ object TarotCard extends SuitedCardCompanion[TarotCard] {
     case Zero, Ace, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Page, Knight, Queen, King, Fifteen, Sixteen, Seventeen, Eighteen, Nineteen, Twenty, TwentyOne
   }
 
-  override def stringToCard(string: String): TarotCard = {
+  override def stringToCard(string: String): TarotCard = stringToCard(string, false)
+  
+  def stringToCard(string: String, isAlsoZero: Boolean = false): TarotCard = {
     if string.contains(" of ") then
       val Array(rankString, suitString) = string.split(" of ", 2)
       return TarotCard(Suit.valueOf(suitString.toLowerCase.capitalize), Rank.valueOf(rankString.toLowerCase.capitalize))
     string.toLowerCase match {
-      case "fool" | "the fool" => TarotCard(Suit.Joker, Rank.Zero)
-      case "magician" | "the magician" => TarotCard(Suit.Joker, Rank.Ace)
-      case "priestess" | "the priestess" | "high priestess" | "the high priestess" => TarotCard(Suit.Joker, Rank.Two)
-      case "empress" | "the empress" => TarotCard(Suit.Joker, Rank.Three)
-      case "emperor" | "the emperor" => TarotCard(Suit.Joker, Rank.Four)
-      case "priest" | "the priest" | "pope" | "the pope" | "hierophant" | "the hierophant" => TarotCard(Suit.Joker, Rank.Five)
-      case "lovers" | "the lovers" => TarotCard(Suit.Joker, Rank.Six)
-      case "chariot" | "the chariot" => TarotCard(Suit.Joker, Rank.Seven)
-      case "strength" => TarotCard(Suit.Joker, Rank.Eight)
-      case "hermit" | "the hermit" => TarotCard(Suit.Joker, Rank.Nine)
-      case "wheel of fortune" | "the wheel of fortune" => TarotCard(Suit.Joker, Rank.Ten)
-      case "justice" => TarotCard(Suit.Joker, Rank.Page)
-      case "hanged man" | "the hanged man" => TarotCard(Suit.Joker, Rank.Knight)
-      case "death" => TarotCard(Suit.Joker, Rank.Queen)
-      case "temperance" => TarotCard(Suit.Joker, Rank.King)
-      case "devil" | "the devil" => TarotCard(Suit.Joker, Rank.Fifteen)
-      case "tower" | "the tower" => TarotCard(Suit.Joker, Rank.Sixteen)
-      case "star" | "the star" => TarotCard(Suit.Joker, Rank.Seventeen)
-      case "moon" | "the moon" => TarotCard(Suit.Joker, Rank.Eighteen)
-      case "sun" | "the sun" => TarotCard(Suit.Joker, Rank.Nineteen)
-      case "judgement" => TarotCard(Suit.Joker, Rank.Twenty)
-      case "world" | "the world" | "universe" | "the universe" => TarotCard(Suit.Joker, Rank.TwentyOne)
+      case "fool" | "the fool" => TarotCard(Suit.Joker, Rank.Zero, isAlsoZero)
+      case "magician" | "the magician" => TarotCard(Suit.Joker, Rank.Ace, isAlsoZero)
+      case "priestess" | "the priestess" | "high priestess" | "the high priestess" => TarotCard(Suit.Joker, Rank.Two, isAlsoZero)
+      case "empress" | "the empress" => TarotCard(Suit.Joker, Rank.Three, isAlsoZero)
+      case "emperor" | "the emperor" => TarotCard(Suit.Joker, Rank.Four, isAlsoZero)
+      case "priest" | "the priest" | "pope" | "the pope" | "hierophant" | "the hierophant" => TarotCard(Suit.Joker, Rank.Five, isAlsoZero)
+      case "lovers" | "the lovers" => TarotCard(Suit.Joker, Rank.Six, isAlsoZero)
+      case "chariot" | "the chariot" => TarotCard(Suit.Joker, Rank.Seven, isAlsoZero)
+      case "strength" => TarotCard(Suit.Joker, Rank.Eight, isAlsoZero)
+      case "hermit" | "the hermit" => TarotCard(Suit.Joker, Rank.Nine, isAlsoZero)
+      case "wheel of fortune" | "the wheel of fortune" => TarotCard(Suit.Joker, Rank.Ten, isAlsoZero)
+      case "justice" => TarotCard(Suit.Joker, Rank.Page, isAlsoZero)
+      case "hanged man" | "the hanged man" => TarotCard(Suit.Joker, Rank.Knight, isAlsoZero)
+      case "death" => TarotCard(Suit.Joker, Rank.Queen, isAlsoZero)
+      case "temperance" => TarotCard(Suit.Joker, Rank.King, isAlsoZero)
+      case "devil" | "the devil" => TarotCard(Suit.Joker, Rank.Fifteen, isAlsoZero)
+      case "tower" | "the tower" => TarotCard(Suit.Joker, Rank.Sixteen, isAlsoZero)
+      case "star" | "the star" => TarotCard(Suit.Joker, Rank.Seventeen, isAlsoZero)
+      case "moon" | "the moon" => TarotCard(Suit.Joker, Rank.Eighteen, isAlsoZero)
+      case "sun" | "the sun" => TarotCard(Suit.Joker, Rank.Nineteen, isAlsoZero)
+      case "judgement" => TarotCard(Suit.Joker, Rank.Twenty, isAlsoZero)
+      case "world" | "the world" | "universe" | "the universe" => TarotCard(Suit.Joker, Rank.TwentyOne, isAlsoZero)
       case _ => throw new IllegalArgumentException("Not a valid TarotCard name: " + string)
     }
   }
 
   override def newDeck: Seq[TarotCard] = {
+    newDeck(Set())
+  }
+
+  def newDeck(extraZeroJokers: Set[Int]): Seq[TarotCard] = {
     var deck: Seq[TarotCard] = for {
       suit <- Suit.values.toSeq if suit != Suit.Joker
       rank <- Rank.values.toSeq if (1 <= rank.ordinal) && (rank.ordinal <= 14)
     } yield TarotCard(suit, rank)
     var jokers: Seq[TarotCard] = for {
       rank <- Rank.values.toSeq
-    } yield TarotCard(Suit.Joker, rank)
+    } yield TarotCard(Suit.Joker, rank, extraZeroJokers.contains(rank.ordinal))
     deck ++ jokers
   }
 }
