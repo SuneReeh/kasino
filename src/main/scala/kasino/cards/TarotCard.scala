@@ -1,6 +1,10 @@
 package kasino.cards
 
-case class TarotCard(val suit: TarotCard.Suit, val rank: TarotCard.Rank) extends SuitedCard {
+case class TarotCard(val suit: TarotCard.Suit, val rank: TarotCard.Rank, isAlsoZero: Boolean = false) extends SuitedCard {
+  require(isAlsoZero <= (suit == TarotCard.Suit.Joker), "Only jokers can optionally have zero as additional value.")
+  require((suit != TarotCard.Suit.Joker) <= (rank.ordinal >= 1 && rank.ordinal <= 14), "Non-jokers only rank from Ace to King.")
+
+
   /**
    * @return The companion object of TarotCard
    */
@@ -12,10 +16,11 @@ case class TarotCard(val suit: TarotCard.Suit, val rank: TarotCard.Rank) extends
   override val values: Set[Int] = {
     var tempValues = Set[Int](rank.ordinal)
     (suit, rank) match {
-      case (_, TarotCard.Rank.Ace) => tempValues += 14
-      case (TarotCard.Suit.Swords, TarotCard.Rank.Two) => tempValues += 15
-      case (TarotCard.Suit.Coins, TarotCard.Rank.Ten) => tempValues += 16
+      case (s, TarotCard.Rank.Ace) if s != TarotCard.Suit.Joker => tempValues += 15
+      case (TarotCard.Suit.Swords, TarotCard.Rank.Two) => tempValues += 16
+      case (TarotCard.Suit.Coins, TarotCard.Rank.Ten) => tempValues += 17
       case (TarotCard.Suit.Swords, TarotCard.Rank.Ten) => tempValues += 21
+      case (TarotCard.Suit.Joker, _) if isAlsoZero => tempValues += 0
       case _ =>
     }
     tempValues
@@ -26,7 +31,7 @@ case class TarotCard(val suit: TarotCard.Suit, val rank: TarotCard.Rank) extends
    */
   override val points: Int = {
     (suit, rank) match {
-      case (_, TarotCard.Rank.Ace) => 1
+      case (s, TarotCard.Rank.Ace) if s != TarotCard.Suit.Joker => 1
       case (TarotCard.Suit.Swords, TarotCard.Rank.Two) => 1
       case (TarotCard.Suit.Staves, TarotCard.Rank.Ten) => 1
       case (TarotCard.Suit.Coins, TarotCard.Rank.Ten) => 2
@@ -36,32 +41,60 @@ case class TarotCard(val suit: TarotCard.Suit, val rank: TarotCard.Rank) extends
     }
   }
 
-  override def toString: String = if suit == TarotCard.Suit.Joker then "Joker" else s"$rank of $suit"
+  override def toString: String = {
+    if suit != TarotCard.Suit.Joker then return s"$rank of $suit"
+    rank.ordinal match {
+      case 0 => "The Fool"
+      case 1 => "The Magician"
+      case 2 => "The High Priestess"
+      case 3 => "The Empress"
+      case 4 => "The Emperor"
+      case 5 => "The Pope"
+      case 6 => "The Lovers"
+      case 7 => "The Chariot"
+      case 8 => "Strength"
+      case 9 => "The Hermit"
+      case 10 => "The Wheel of Fortune"
+      case 11 => "Justice"
+      case 12 => "The Hanged Man"
+      case 13 => "Death"
+      case 14 => "Temperance"
+      case 15 => "The Devil"
+      case 16 => "The Tower"
+      case 17 => "The Star"
+      case 18 => "The Moon"
+      case 19 => "The Sun"
+      case 20 => "Judgement"
+      case 21 => "The Universe"
+    }
+  }
 }
 
 object TarotCard extends SuitedCardCompanion[TarotCard] {
-  override def apply(suit: Suit, rank: Rank): TarotCard = new TarotCard(suit,rank)
+  override def apply(suit: Suit, rank: Rank): TarotCard = new TarotCard(suit, rank)
 
-  enum Suit extends java.lang.Enum[Suit] with SuitTrait
-  {
+  def apply(suit: Suit, rank: Rank, isAlsoZero: Boolean = false): TarotCard = new TarotCard(suit, rank, isAlsoZero)
+
+  enum Suit extends java.lang.Enum[Suit] with SuitTrait {
     case Staves, Coins, Cups, Swords, Joker
 
-    override def isSpades: Boolean = this == Swords
+    override
+
+    def isSpades: Boolean = this == Swords
   }
 
-  enum Rank extends java.lang.Enum[Rank] with RankTrait
-  {
+  enum Rank extends java.lang.Enum[Rank] with RankTrait {
     case Zero, Ace, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Page, Knight, Queen, King, Fifteen, Sixteen, Seventeen, Eighteen, Nineteen, Twenty, TwentyOne
   }
 
   override def stringToCard(string: String): TarotCard = {
     if string.contains(" of ") then
-      val Array(rankString,suitString) = string.split(" of ", 2)
+      val Array(rankString, suitString) = string.split(" of ", 2)
       return TarotCard(Suit.valueOf(suitString.toLowerCase.capitalize), Rank.valueOf(rankString.toLowerCase.capitalize))
     string.toLowerCase match {
       case "fool" | "the fool" => TarotCard(Suit.Joker, Rank.Zero)
       case "magician" | "the magician" => TarotCard(Suit.Joker, Rank.Ace)
-      case "priestess" | "the priestess" | "the high priestess" => TarotCard(Suit.Joker, Rank.Two)
+      case "priestess" | "the priestess" | "high priestess" | "the high priestess" => TarotCard(Suit.Joker, Rank.Two)
       case "empress" | "the empress" => TarotCard(Suit.Joker, Rank.Three)
       case "emperor" | "the emperor" => TarotCard(Suit.Joker, Rank.Four)
       case "priest" | "the priest" | "pope" | "the pope" | "hierophant" | "the hierophant" => TarotCard(Suit.Joker, Rank.Five)
@@ -89,10 +122,10 @@ object TarotCard extends SuitedCardCompanion[TarotCard] {
     var deck: Seq[TarotCard] = for {
       suit <- Suit.values.toSeq if suit != Suit.Joker
       rank <- Rank.values.toSeq if (1 <= rank.ordinal) && (rank.ordinal <= 14)
-    } yield TarotCard(suit,rank)
-    var jokers: Seq[TarotCard ] = for {
+    } yield TarotCard(suit, rank)
+    var jokers: Seq[TarotCard] = for {
       rank <- Rank.values.toSeq
-    } yield TarotCard(Suit.Joker,rank)
+    } yield TarotCard(Suit.Joker, rank)
     deck ++ jokers
   }
 }
