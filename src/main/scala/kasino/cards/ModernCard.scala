@@ -1,8 +1,7 @@
 package kasino.cards
 
 case class ModernCard (val suit: ModernCard.Suit, val rank: ModernCard.Rank) extends SuitedCard {
-  require((suit != ModernCard.Suit.Joker) >= (rank.ordinal >= 1), "Non-jokers cannot have rank zero.")
-  require((suit == ModernCard.Suit.Joker) >= (rank.ordinal == 0), "Jokers must have rank zero.")
+  require((suit == ModernCard.Suit.Joker) == (rank.ordinal == 0), "A card has rank zero if and only if it is a joker.")
   
   /**
    * @return The companion object of ModernCard
