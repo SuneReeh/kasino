@@ -17,5 +17,9 @@ object Main {
     println(TarotCard("temperance") == TarotCard(TarotCard.Suit.Joker, TarotCard.Rank.King, true))
     println(TarotCard("temperance").values)
     println(TarotCard("temperance", true).values)
+    println(TarotCard.unapply(TarotCard("temperance")))
+    TarotCard("temperance") match {
+      case TarotCard(s ,r, b) => println(s"$s, $r, $b")
+    }
   }
 }

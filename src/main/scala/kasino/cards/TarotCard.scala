@@ -1,6 +1,6 @@
 package kasino.cards
 
-case class TarotCard(val suit: TarotCard.Suit, val rank: TarotCard.Rank, isAlsoZero: Boolean = false) extends SuitedCard {
+case class TarotCard(val suit: TarotCard.Suit, val rank: TarotCard.Rank, val isAlsoZero: Boolean = false) extends SuitedCard {
   require(isAlsoZero <= (suit == TarotCard.Suit.Joker), "Only jokers can optionally have zero as additional value.")
   require((suit != TarotCard.Suit.Joker) <= (rank.ordinal >= 1 && rank.ordinal <= 14), "Non-jokers only rank from Ace to King.")
 
