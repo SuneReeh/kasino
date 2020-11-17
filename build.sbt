@@ -8,3 +8,8 @@ lazy val root = project
     scalaVersion := dottyLatestNightlyBuild.get
     //scalaVersion := "3.0.0-M2"
   )
+
+
+//libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.3" % "test"
+//libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.3"
+//libraryDependencies += "org.scalamock" %% "scalamock" % "5.0.0" % "Test"
