@@ -5,13 +5,6 @@ import scala.util.Random
 
 object Main {
   def main(args: Array[String]): Unit = {
-    println(ModernCard.Suit.getClass)
-    println(ModernCard.Suit.Spades.isSpades)
-    println(ModernCard("joker"))
-    println(ModernCard("Six of Hearts").points)
-    println(ModernCard("SIX of hearts"))
-    println(ModernCard("ten of spades").values)
-    println(ModernCard("ten of hearts").points)
     println(Random.shuffle(ModernCard.newDeck))
     println(Random.shuffle(TarotCard.newDeck(Set(Random.nextInt(22), Random.nextInt(22), Random.nextInt(22), Random.nextInt(22), Random.nextInt(22)))))
     println(TarotCard("temperance") == TarotCard(TarotCard.Suit.Joker, TarotCard.Rank.King))
@@ -23,5 +16,6 @@ object Main {
       case TarotCard(s ,r, b) => println(s"$s, $r, $b")
     }
     println(CardStack(TarotCard("temperance")).cards)
+    println(CardStack(TarotCard("temperance")) + CardStack(TarotCard("justice")) + CardStack(TarotCard("ten of cups")))
   }
 }
