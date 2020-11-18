@@ -111,6 +111,38 @@ class CardStack private(val values: Set[Int],
       else
         throw new InvalidResultException(OpType.Mod, this, other, result)
   }
+
+  @infix
+  @targetName("combine")
+  def &(other: CardStack): CardStack = {
+    (this & other) ()
+  }
+
+  @infix
+  @targetName("combine")
+  def &(other: CardStack)(result: Option[Int] = None, owner: Option[Player] = None): CardStack = {
+    if result.isEmpty then
+      if values.size != 1 || other.values.size != 1 then
+        throw new AmbiguousResultException(OpType.Combine, this, other)
+      else
+        for v1 <- values do
+          for v2 <- other.values do
+            if v1 == v2 then
+              return new CardStack(Set(v1), points + other.points, cards ++ other.cards, owner.map(_.Id), owner.map(_.name), true)
+            else
+              throw new InvalidResultException(OpType.Combine, this, other, None)
+        return (null: CardStack) //Unreachable
+    else
+      var resultIsValid = false
+      for v1 <- values do
+        for v2 <- other.values do
+          if result.get == v1 && v1 == v2 then
+            resultIsValid = true
+      if resultIsValid then
+        return new CardStack(Set(result.get), points + other.points, cards ++ other.cards, owner.map(_.Id), owner.map(_.name), true)
+      else
+        throw new InvalidResultException(OpType.Sum, this, other, result)
+  }
 }
 
 object CardStack {
