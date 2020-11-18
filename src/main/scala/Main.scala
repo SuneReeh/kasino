@@ -1,3 +1,4 @@
+import kasino.CardStack
 import kasino.cards._
 
 import scala.util.Random
@@ -21,5 +22,6 @@ object Main {
     TarotCard("temperance") match {
       case TarotCard(s ,r, b) => println(s"$s, $r, $b")
     }
+    println(CardStack(TarotCard("temperance")).cards)
   }
 }
