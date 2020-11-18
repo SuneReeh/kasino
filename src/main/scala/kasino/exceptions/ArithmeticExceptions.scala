@@ -25,8 +25,8 @@ class InvalidResultException private (val operation: OpType, val firstInput : Ca
       case None => (operation, resultValue) match {
         case (Sum, Some(result)) => s"You cannot make ${result} as a sum of values ${firstInput.values} and ${secondInput.values}."
         case (Sum, None) => throw new IllegalArgumentException("You can always add non-ambiguous values.") //s"There is no legal sum of values ${firstInput.values} and ${secondInput.values}."
-        case (Mod, Some(result)) => s"You cannot make ${result} as a remainder between values ${firstInput.values} and ${secondInput.values}."
-        case (Mod, None) => s"There is no legal remainder between values ${firstInput.values} and ${secondInput.values}."
+        case (Mod, Some(result)) => s"You cannot make ${result} as a non-trivial remainder of values ${firstInput.values} by ${secondInput.values}."
+        case (Mod, None) => s"There is no non-trivial remainder of values ${firstInput.values} by ${secondInput.values}."
         case (Combine, Some(result)) => s"Cannot make ${"}more $result${"} from stacks with values ${firstInput.values} and ${secondInput.values}."
         case (Combine, None) => s"Cannot combine stacks with values ${firstInput.values} and ${secondInput.values}."
       }

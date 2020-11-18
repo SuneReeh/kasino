@@ -17,5 +17,7 @@ object Main {
     }
     println(CardStack(TarotCard("temperance")).cards)
     println(CardStack(TarotCard("temperance")) + CardStack(TarotCard("justice")) + CardStack(TarotCard("ten of cups")))
+    println(CardStack(TarotCard("temperance")) % CardStack(TarotCard("justice")))
+    println(CardStack(TarotCard("temperance")) % CardStack(TarotCard("ten of cups")))
   }
 }
