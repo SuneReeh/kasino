@@ -19,6 +19,8 @@ trait Card {
   def isFiveOfSpades: Boolean
   
   def isSpades: Boolean
+  
+  def description: Option[String] = None
 }
 
 /**
