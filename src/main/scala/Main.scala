@@ -1,3 +1,5 @@
+package kasino
+
 import kasino.CardStack
 import kasino.cards._
 

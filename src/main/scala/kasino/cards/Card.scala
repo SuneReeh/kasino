@@ -6,32 +6,32 @@ package kasino.cards
 trait Card {
 
   /**
-   * @return The companion object of the class implementing [[Card]].
+   * The companion object of the class implementing [[Card]].
    */
   val companion: CardCompanion[Card]
   
   /**
-   * @return The set of possible values that this [[Card]] can be used as.
+   * The set of possible values that this [[Card]] can be used as.
    */
   def values: Set[Int]
 
   /**
-   * @return How many points this [[Card]] is worth.
+   * How many points this [[Card]] is worth.
    */
   def points: Int
 
   /**
-   * @return [[true]] if this [[Card]] is the Five of Spades (or equivalent card).
+   * [[true]] if this [[Card]] is the Five of Spades (or equivalent card).
    */
   def isFiveOfSpades: Boolean
 
   /**
-   * @return [[true]] if this [[Card]] is Spades (or equivalent suit).
+   * [[true]] if this [[Card]] is Spades (or equivalent suit).
    */
   def isSpades: Boolean
   
   /**
-   * @return Optional flavor description of this [[Card]].
+   * Optional flavor description of this [[Card]].
    */
   def description: Option[String] = None
 }

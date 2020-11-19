@@ -5,8 +5,9 @@ lazy val root = project
     description := "\"Nørdekasino\" -- variant of the card game \"Casino\" developed with friends at the University of Copenhagen",
     version := "0.0.1",
 
-    scalaVersion := dottyLatestNightlyBuild.get
+    scalaVersion := dottyLatestNightlyBuild.get,
     //scalaVersion := "3.0.0-M1"
+    useScala3doc := true,
   )
 
 
