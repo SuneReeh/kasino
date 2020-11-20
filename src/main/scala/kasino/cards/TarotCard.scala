@@ -142,7 +142,7 @@ object TarotCard extends SuitedCardCompanion[TarotCard] {
    */
   override def stringToCard(name: String): TarotCard = {
     if name.endsWith("(0)") then
-      stringToCard(name, true)
+      stringToCard(name.stripSuffix("(0)"), true)
     else
       stringToCard(name, false)
   }
