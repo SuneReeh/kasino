@@ -1,17 +1,25 @@
 package kasino.cards
 
+/**
+ * The classical tarot playing cards with four suits (staves, coins, cups, and swords) of ranks from ace to king (with page and knight replacing jacks from modern playing cards). In addition we have 22 jokers (the major arcana), all named, and numbered from 0 to 21.
+ *
+ * @constructor Create a new [[TarotCard]] with specified suit and rank.
+ * @param suit the suit of this [[TarotCard]].
+ * @param rank the rank of this [[TarotCard]].
+ * @param isAlsoZero [[true]] if this [[TarotCard]] can also be used as value 0. Can only be [[true]] for jokers.
+ * @note Jokers have the suit [[TarotCard.Suit.Joker]] and are the only cards with rank [[TarotCard.Rank.Zero]], or rank [[TarotCard.Rank.Fifteen]] and above.
+ */
 case class TarotCard(val suit: TarotCard.Suit, val rank: TarotCard.Rank, val isAlsoZero: Boolean = false) extends SuitedCard {
   require(isAlsoZero <= (suit == TarotCard.Suit.Joker), "Only jokers can optionally have zero as additional value.")
   require((suit != TarotCard.Suit.Joker) <= (rank.ordinal >= 1 && rank.ordinal <= 14), "Non-jokers only rank from Ace to King.")
 
-
   /**
-   * @return The companion object of TarotCard
+   * The companion object [[TarotCard$]].
    */
   override val companion: TarotCard.type = TarotCard
 
   /**
-   * @return The set of possible values that the Card can be used as.
+   * The set of possible values that this [[TarotCard]] can be used as.
    */
   override val values: Set[Int] = {
     var tempValues = Set[Int](rank.ordinal)
@@ -27,7 +35,7 @@ case class TarotCard(val suit: TarotCard.Suit, val rank: TarotCard.Rank, val isA
   }
 
   /**
-   * @return How many points the Card is worth.
+   * How many points this [[TarotCard]] is worth.
    */
   override val points: Int = {
     (suit, rank) match {
@@ -41,6 +49,9 @@ case class TarotCard(val suit: TarotCard.Suit, val rank: TarotCard.Rank, val isA
     }
   }
 
+  /**
+   * The everyday name of this [[TarotCard]].
+   */
   override def toString: String = {
     if suit != TarotCard.Suit.Joker then return s"$rank of $suit"
     val name = rank.ordinal match {
@@ -71,32 +82,83 @@ case class TarotCard(val suit: TarotCard.Suit, val rank: TarotCard.Rank, val isA
   }
 }
 
+/**
+ * Companion object of the class [[TarotCard]].
+ */
 object TarotCard extends SuitedCardCompanion[TarotCard] {
+  /**
+   * Creates a [[TarotCard]] with the specified [[Suit]] and [[Rank]].
+   *
+   * @param suit enum-value specifying the suit of the card.
+   * @param rank enum-value specifying the rank of the card.
+   * @return a new [[TarotCard]] with the specified [[Suit]] and [[Rank]].
+   */
   override def apply(suit: Suit, rank: Rank): TarotCard = new TarotCard(suit, rank)
 
+  /**
+   * Creates a [[TarotCard]] with the specified [[Suit]] and [[Rank]].
+   *
+   * @param suit enum-value specifying the suit of the card.
+   * @param rank enum-value specifying the rank of the card.
+   * @param isAlsoZero If set to [[true]], then the card has the additional value of 0 -- this is only allowed for jokers.
+   * @return a new [[TarotCard]] with the specified [[Suit]] and [[Rank]].
+   */
   def apply(suit: Suit, rank: Rank, isAlsoZero: Boolean = false): TarotCard = new TarotCard(suit, rank, isAlsoZero)
 
-  def apply(string: String, isAlsoZero: Boolean): TarotCard = stringToCard(string, isAlsoZero)
+  /**
+   * Creates a [[TarotCard]] from its name, as specified by [[stringToCard]].
+   *
+   * @param name the name of the [[TarotCard]] to create
+   * @param isAlsoZero If set to [[true]], then the card has the additional value of 0 -- this is only allowed for jokers.
+   * @return a new [[TarotCard]] representing the card with the given name.
+   */
+  def apply(name: String, isAlsoZero: Boolean): TarotCard = stringToCard(name, isAlsoZero)
 
+  /**
+   * Enum type containing the possible suit values: [[Suit.Staves]], [[Suit.Coins]], [[Suit.Cups]], [[Suit.Swords]], and [[Suit.Joker]].
+   */
   enum Suit extends java.lang.Enum[Suit] with SuitTrait {
     case Staves, Coins, Cups, Swords, Joker
 
-    override
-
-    def isSpades: Boolean = this == Swords
+    /**
+     * [[true]] if this [[Suit]] equals [[Swords]].
+     */
+    override def isSpades: Boolean = this == Swords
   }
 
+  /**
+   * Enum type containing the possible rank values: [[Rank.Zero]], [[Rank.Ace]], [[Rank.Two]], ..., [[Rank.Ten]], [[Rank.Page]], [[Rank.Knight]], [[Rank.Queen]], [[Rank.King]], [[Rank.Fifteen]], ..., [[Rank.TwentyOne]].
+   */
   enum Rank extends java.lang.Enum[Rank] with RankTrait {
     case Zero, Ace, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Page, Knight, Queen, King, Fifteen, Sixteen, Seventeen, Eighteen, Nineteen, Twenty, TwentyOne
   }
 
-  override def stringToCard(string: String): TarotCard = stringToCard(string, false)
-  
-  def stringToCard(string: String, isAlsoZero: Boolean = false): TarotCard = {
-    if string.contains(" of ") then
-      val Array(rankString, suitString) = string.split(" of ", 2)
+  /**
+   * Creates a [[TarotCard]] from its name. The name of a joker can be appended with `(0)` to designate that the joker can also be used as value 0.
+   *
+   * @param name the name of the [[TarotCard]] to create
+   * @return a new [[TarotCard]] representing the card with the given name.
+   * @note If `card` is an instance of [[TarotCard]], then {{{TarotCard.stringToCard(card.toString)}}} returns a copy of `card`.
+   */
+  override def stringToCard(name: String): TarotCard = {
+    if name.endsWith("(0)") then
+      stringToCard(name, true)
+    else
+      stringToCard(name, false)
+  }
+
+  /**
+   * Creates a [[TarotCard]] from its name.
+   *
+   * @param name the name of the [[TarotCard]] to create
+   * @param isAlsoZero If set to [[true]], then the card has the additional value of 0 -- this is only allowed for jokers.
+   * @return a new [[TarotCard]] representing the card with the given name.
+   */
+  def stringToCard(name: String, isAlsoZero: Boolean = false): TarotCard = {
+    if name.contains(" of ") then
+      val Array(rankString, suitString) = name.split(" of ", 2)
       return TarotCard(Suit.valueOf(suitString.toLowerCase.capitalize), Rank.valueOf(rankString.toLowerCase.capitalize))
-    string.toLowerCase match {
+    name.strip().toLowerCase match {
       case "fool" | "the fool" => TarotCard(Suit.Joker, Rank.Zero, isAlsoZero)
       case "magician" | "the magician" => TarotCard(Suit.Joker, Rank.Ace, isAlsoZero)
       case "priestess" | "the priestess" | "high priestess" | "the high priestess" => TarotCard(Suit.Joker, Rank.Two, isAlsoZero)
@@ -119,14 +181,25 @@ object TarotCard extends SuitedCardCompanion[TarotCard] {
       case "sun" | "the sun" => TarotCard(Suit.Joker, Rank.Nineteen, isAlsoZero)
       case "judgement" => TarotCard(Suit.Joker, Rank.Twenty, isAlsoZero)
       case "world" | "the world" | "universe" | "the universe" => TarotCard(Suit.Joker, Rank.TwentyOne, isAlsoZero)
-      case _ => throw new IllegalArgumentException("Not a valid TarotCard name: " + string)
+      case _ => throw new IllegalArgumentException("Not a valid TarotCard name: " + name)
     }
   }
 
+  /**
+   * Creates a new default deck populated with one of each [[TarotCard]]. The deck is ordered by suit with the jokers at the end.
+   *
+   * @return a new default [[TarotCard]] deck.
+   */
   override def newDeck: Seq[TarotCard] = {
     newDeck(Set())
   }
 
+  /**
+   * Creates a new default deck populated with one of each [[TarotCard]]. The deck is ordered by suit with the jokers at the end.
+   *
+   * @param extraZeroJokers a set of integers between 0 and 21 (inclusive). The jokers with these ranks can also be used as value 0 in addition to their normal values.
+   * @return a new [[TarotCard]] deck, with the specified optional zero-valued jokers.
+   */
   def newDeck(extraZeroJokers: Set[Int]): Seq[TarotCard] = {
     var deck: Seq[TarotCard] = for {
       suit <- Suit.values.toSeq if suit != Suit.Joker
