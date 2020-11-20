@@ -43,7 +43,7 @@ trait Card {
  */
 trait CardCompanion[+C <: Card] {
   /**
-   * Creates a [[C]] from its name.
+   * Creates a [[C]] from its name, as specified by [[stringToCard]].
    * 
    * @param name the name of the [[C]] to create
    * @return a new [[C]] representing the card with the given name.
@@ -55,6 +55,7 @@ trait CardCompanion[+C <: Card] {
    * 
    * @param name the name of the [[C]] to create
    * @return a new [[C]] representing the card with the given name.
+   * @note Preferrably if `card` has type [[C]], then {{{C.stringToCard(card.toString)}}} returns a copy of `card`.
    */
   def stringToCard(name: String): C
   
