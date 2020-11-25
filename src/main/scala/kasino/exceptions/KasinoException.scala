@@ -1,5 +1,10 @@
 package kasino.exceptions
 
+/**
+ * Base exception type for the kasino-package.
+ *
+ * @param message the detail message.
+ */
 class KasinoException(message: String) extends Exception(message) {
 
   def this(message: String, cause: Throwable) = {

@@ -6,7 +6,7 @@ lazy val root = project
     version := "0.0.1",
 
     scalaVersion := dottyLatestNightlyBuild.get,
-    //scalaVersion := "3.0.0-M1"
+    //scalaVersion := "3.0.0-M2",
     useScala3doc := true,
   )
 
