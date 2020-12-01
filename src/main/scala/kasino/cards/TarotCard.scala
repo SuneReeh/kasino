@@ -52,33 +52,35 @@ case class TarotCard(val suit: TarotCard.Suit, val rank: TarotCard.Rank, val isA
   /**
    * The everyday name of this [[TarotCard]].
    */
-  override def toString: String = {
-    if suit != TarotCard.Suit.Joker then return s"$rank of $suit"
-    val name = rank.ordinal match {
-      case 0 => "The Fool"
-      case 1 => "The Magician"
-      case 2 => "The High Priestess"
-      case 3 => "The Empress"
-      case 4 => "The Emperor"
-      case 5 => "The Pope"
-      case 6 => "The Lovers"
-      case 7 => "The Chariot"
-      case 8 => "Strength"
-      case 9 => "The Hermit"
-      case 10 => "The Wheel of Fortune"
-      case 11 => "Justice"
-      case 12 => "The Hanged Man"
-      case 13 => "Death"
-      case 14 => "Temperance"
-      case 15 => "The Devil"
-      case 16 => "The Tower"
-      case 17 => "The Star"
-      case 18 => "The Moon"
-      case 19 => "The Sun"
-      case 20 => "Judgement"
-      case 21 => "The Universe"
-    }
-    name + (if isAlsoZero then " (0)" else "")
+  override val toString: String = {
+    if suit != TarotCard.Suit.Joker then 
+      s"$rank of $suit"
+    else
+      val name = rank.ordinal match {
+        case 0 => "The Fool"
+        case 1 => "The Magician"
+        case 2 => "The High Priestess"
+        case 3 => "The Empress"
+        case 4 => "The Emperor"
+        case 5 => "The Pope"
+        case 6 => "The Lovers"
+        case 7 => "The Chariot"
+        case 8 => "Strength"
+        case 9 => "The Hermit"
+        case 10 => "The Wheel of Fortune"
+        case 11 => "Justice"
+        case 12 => "The Hanged Man"
+        case 13 => "Death"
+        case 14 => "Temperance"
+        case 15 => "The Devil"
+        case 16 => "The Tower"
+        case 17 => "The Star"
+        case 18 => "The Moon"
+        case 19 => "The Sun"
+        case 20 => "Judgement"
+        case 21 => "The Universe"
+      }
+      name + (if isAlsoZero then " (0)" else "")
   }
 }
 

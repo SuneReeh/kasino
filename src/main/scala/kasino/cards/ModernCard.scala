@@ -49,7 +49,7 @@ case class ModernCard (val suit: ModernCard.Suit, val rank: ModernCard.Rank) ext
   /**
    * The everyday name of this [[ModernCard]].
    */
-  override def toString: String = if suit == ModernCard.Suit.Joker then "Joker" else s"$rank of $suit"
+  override val toString: String = if suit == ModernCard.Suit.Joker then "Joker" else s"$rank of $suit"
 }
 
 /**
