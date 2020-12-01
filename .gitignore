@@ -26,3 +26,6 @@ classes/
 .idea
 .idea_modules
 /.worksheet/
+
+# personal
+/src/Worksheet.sc
