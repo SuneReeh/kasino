@@ -158,7 +158,7 @@ object TarotCard extends SuitedCardCompanion[TarotCard] {
    */
   def stringToCard(name: String, isAlsoZero: Boolean = false): TarotCard = {
     if name.contains(" of ") then
-      val Array(rankString, suitString) = name.split(" of ", 2)
+      val Array(rankString, suitString) = name.strip().split(" of ", 2)
       return TarotCard(Suit.valueOf(suitString.toLowerCase.capitalize), Rank.valueOf(rankString.toLowerCase.capitalize))
     name.strip().toLowerCase match {
       case "fool" | "the fool" => TarotCard(Suit.Joker, Rank.Zero, isAlsoZero)

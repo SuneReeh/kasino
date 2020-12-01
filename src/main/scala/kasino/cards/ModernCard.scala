@@ -96,7 +96,7 @@ object ModernCard extends SuitedCardCompanion[ModernCard] {
   override def stringToCard(string: String): ModernCard = {
     if string.strip().toLowerCase == "joker" then
       return ModernCard(Suit.Joker, Rank.Zero)
-    val Array(rankString,suitString) = string.split(" of ", 2)
+    val Array(rankString,suitString) = string.strip().split(" of ", 2)
     ModernCard(Suit.valueOf(suitString.toLowerCase.capitalize), Rank.valueOf(rankString.toLowerCase.capitalize))
   }
 
