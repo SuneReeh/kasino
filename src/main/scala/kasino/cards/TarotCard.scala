@@ -6,7 +6,7 @@ package kasino.cards
  * @constructor Create a new [[TarotCard]] with specified suit and rank.
  * @param suit the suit of this [[TarotCard]].
  * @param rank the rank of this [[TarotCard]].
- * @param isAlsoZero [[true]] if this [[TarotCard]] can also be used as value 0. Can only be [[true]] for jokers.
+ * @param isAlsoZero `true` if this [[TarotCard]] can also be used as value 0. Can only be `true` for jokers.
  * @note Jokers have the suit [[TarotCard.Suit.Joker]] and are the only cards with rank [[TarotCard.Rank.Zero]], or rank [[TarotCard.Rank.Fifteen]] and above.
  */
 case class TarotCard(val suit: TarotCard.Suit, val rank: TarotCard.Rank, val isAlsoZero: Boolean = false) extends SuitedCard {
@@ -102,7 +102,7 @@ object TarotCard extends SuitedCardCompanion[TarotCard] {
    *
    * @param suit enum-value specifying the suit of the card.
    * @param rank enum-value specifying the rank of the card.
-   * @param isAlsoZero If set to [[true]], then the card has the additional value of 0 -- this is only allowed for jokers.
+   * @param isAlsoZero If set to `true`, then the card has the additional value of 0 -- this is only allowed for jokers.
    * @return a new [[TarotCard]] with the specified [[Suit]] and [[Rank]].
    */
   def apply(suit: Suit, rank: Rank, isAlsoZero: Boolean = false): TarotCard = new TarotCard(suit, rank, isAlsoZero)
@@ -111,7 +111,7 @@ object TarotCard extends SuitedCardCompanion[TarotCard] {
    * Creates a [[TarotCard]] from its name, as specified by [[stringToCard]].
    *
    * @param name the name of the [[TarotCard]] to create
-   * @param isAlsoZero If set to [[true]], then the card has the additional value of 0 -- this is only allowed for jokers.
+   * @param isAlsoZero If set to `true`, then the card has the additional value of 0 -- this is only allowed for jokers.
    * @return a new [[TarotCard]] representing the card with the given name.
    */
   def apply(name: String, isAlsoZero: Boolean): TarotCard = stringToCard(name, isAlsoZero)
@@ -123,7 +123,7 @@ object TarotCard extends SuitedCardCompanion[TarotCard] {
     case Staves, Coins, Cups, Swords, Joker
 
     /**
-     * [[true]] if this [[Suit]] equals [[Swords]].
+     * `true` if this [[Suit]] equals [[Suit.Swords]].
      */
     override def isSpades: Boolean = this == Swords
   }
@@ -140,7 +140,7 @@ object TarotCard extends SuitedCardCompanion[TarotCard] {
    *
    * @param name the name of the [[TarotCard]] to create
    * @return a new [[TarotCard]] representing the card with the given name.
-   * @note If `card` is an instance of [[TarotCard]], then {{{TarotCard.stringToCard(card.toString)}}} returns a copy of `card`.
+   * @note If `card` is an instance of [[TarotCard]], then `TarotCard.stringToCard(card.toString)` returns a copy of `card`.
    */
   override def stringToCard(name: String): TarotCard = {
     if name.endsWith("(0)") then
@@ -153,7 +153,7 @@ object TarotCard extends SuitedCardCompanion[TarotCard] {
    * Creates a [[TarotCard]] from its name.
    *
    * @param name the name of the [[TarotCard]] to create
-   * @param isAlsoZero If set to [[true]], then the card has the additional value of 0 -- this is only allowed for jokers.
+   * @param isAlsoZero If set to `true`, then the card has the additional value of 0 -- this is only allowed for jokers.
    * @return a new [[TarotCard]] representing the card with the given name.
    */
   def stringToCard(name: String, isAlsoZero: Boolean = false): TarotCard = {

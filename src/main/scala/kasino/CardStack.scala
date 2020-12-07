@@ -21,7 +21,7 @@ class CardStack private(val values: Set[Int],
 
 
   /**
-   * The [[UUID]] of the [[Player]] who made this [[CardStack]], if the stack is locked to a player.
+   * The [[java.util.UUID]] of the [[Player]] who made this [[CardStack]], if the stack is locked to a player.
    */
   def ownerId: Option[UUID] = _ownerId
 
@@ -61,10 +61,10 @@ class CardStack private(val values: Set[Int],
   import scala.annotation.targetName
 
   /**
-   * Returns a new [[CardStack]] resulting from addition of this [[CardStack]] with [[other]].
+   * Returns a new [[CardStack]] resulting from addition of this [[CardStack]] with `other`.
    *
    * @param other another [[CardStack]] to add with this.
-   * @return a new [[CardStack]] resulting from addition of this with [[other]].
+   * @return a new [[CardStack]] resulting from addition of this with `other`.
    * @throws kasino.exceptions.LockedValueException if either [[CardStack]] has `lockedValue = true`.
    * @throws kasino.exceptions.AmbiguousResultException if either [[CardStack]] has more than one possible value.
    */
@@ -74,12 +74,12 @@ class CardStack private(val values: Set[Int],
   }
 
   /**
-   * Returns a new [[CardStack]] resulting from addition of this [[CardStack]] with [[other]].
+   * Returns a new [[CardStack]] resulting from addition of this [[CardStack]] with `other`.
    *
    * @param other another [[CardStack]] to add with this.
    * @param result optional specification of the value for the resulting [[CardStack]].
    * @param owner optional [[Player]] performing the addition.
-   * @return a new [[CardStack]] resulting from addition of this with [[other]], optionally with the specified value and owner.
+   * @return a new [[CardStack]] resulting from addition of this with `other`, optionally with the specified value and owner.
    * @throws kasino.exceptions.LockedValueException if either [[CardStack]] has `lockedValue = true`.
    * @throws kasino.exceptions.AmbiguousResultException if either [[CardStack]] has more than one possible value and `result = None`.
    * @throws kasino.exceptions.InvalidResultException if `result` is not a possible value for the sum of the two [[CardStack]]s.
@@ -110,10 +110,10 @@ class CardStack private(val values: Set[Int],
   }
 
   /**
-   * Returns a new [[CardStack]] resulting from taking the remainder of this [[CardStack]] upon dividing with [[other]].
+   * Returns a new [[CardStack]] resulting from taking the remainder of this [[CardStack]] upon dividing with `other`.
    *
    * @param other another [[CardStack]] with which to take remainder by.
-   * @return a new [[CardStack]] as remainder of [[this]] modulo [[other]].
+   * @return a new [[CardStack]] as remainder of [[this]] modulo `other`.
    * @throws kasino.exceptions.LockedValueException if either [[CardStack]] has `lockedValue = true`.
    * @throws kasino.exceptions.AmbiguousResultException if either [[CardStack]] has more than one possible value.
    * @throws kasino.exceptions.InvalidResultException if `other` has bigger value than `this` so that the remainder is just trivially the same as `this.value`, or if `other` has value 0 so that the remainder is undefined.
@@ -124,12 +124,12 @@ class CardStack private(val values: Set[Int],
   }
 
   /**
-   * Returns a new [[CardStack]] resulting from taking the remainder of this [[CardStack]] upon dividing with [[other]].
+   * Returns a new [[CardStack]] resulting from taking the remainder of this [[CardStack]] upon dividing with `other`.
    *
    * @param other another [[CardStack]] with which to take remainder by.
    * @param result optional specification of the value for the resulting [[CardStack]].
    * @param owner optional [[Player]] performing the remainder operation.
-   * @return a new [[CardStack]] as remainder of [[this]] modulo [[other]].
+   * @return a new [[CardStack]] as remainder of `this` modulo `other`.
    * @throws kasino.exceptions.LockedValueException if either [[CardStack]] has `lockedValue = true`.
    * @throws kasino.exceptions.AmbiguousResultException if either [[CardStack]] has more than one possible value and `result = None`.
    * @throws kasino.exceptions.InvalidResultException if `result` is not a possible value for the sum of the two [[CardStack]]s. Alternatively, if `other` has bigger value than `this` so that the remainder is just trivially the same as `this.value`, or if `other` has value 0 so that the remainder is undefined.
@@ -164,10 +164,10 @@ class CardStack private(val values: Set[Int],
   }
 
   /**
-   * Returns a new [[CardStack]] resulting from combining this [[CardStack]] with [[other]], both having the same value.
+   * Returns a new [[CardStack]] resulting from combining this [[CardStack]] with `other`, both having the same value.
    *
    * @param other another [[CardStack]] with the same value as this.
-   * @return a new [[CardStack]] resulting from combining this with [[other]], the resulting stack has the same value as both input [[CardStack]]s.
+   * @return a new [[CardStack]] resulting from combining this with `other`, the resulting stack has the same value as both input [[CardStack]]s.
    * @throws kasino.exceptions.AmbiguousResultException if either [[CardStack]] has more than one possible value.
    * @throws kasino.exceptions.InvalidResultException if 'other' and 'this' have different values.
    */
@@ -177,12 +177,12 @@ class CardStack private(val values: Set[Int],
   }
 
   /**
-   * Returns a new [[CardStack]] resulting from combining this [[CardStack]] with [[other]], both having a common value (specified optionally by the `result` parameter).
+   * Returns a new [[CardStack]] resulting from combining this [[CardStack]] with `other`, both having a common value (specified optionally by the `result` parameter).
    *
    * @param other another [[CardStack]] with the same value as this.
    * @param result optional specification of the value for the resulting [[CardStack]]. This must be a value for both `this` and `other`.
    * @param owner optional [[Player]] combining the [[CardStack]]s.
-   * @return a new [[CardStack]] resulting from combining this with [[other]], the resulting stack has the same value as both input [[CardStack]]s -- or value `result` is specified.
+   * @return a new [[CardStack]] resulting from combining this with `other`, the resulting stack has the same value as both input [[CardStack]]s -- or value `result` is specified.
    * @throws kasino.exceptions.AmbiguousResultException if either [[CardStack]] has more than one possible value and `result = None`.
    * @throws kasino.exceptions.InvalidResultException if 'other' and 'this' have different values, or if `result` is not a common value for both.
    */
@@ -217,9 +217,9 @@ class CardStack private(val values: Set[Int],
  */
 object CardStack {
   /**
-   * Creates a new [[CardStack]] from a single [[Card]].
+   * Creates a new [[CardStack]] from a single [[kasino.cards.Card]].
    *
-   * @param card the card that this [[CardStack]] is built from.
+   * @param card the [[kasino.cards.Card]] that this [[CardStack]] is built from.
    * @param ownerName optional name of the [[Player]] constructing this [[CardStack]].
    * @return a new [[CardStack]] with the same values and points as the provided card, containing the card, and (optionally) with the specified player name as ownerName.
    */
@@ -228,9 +228,9 @@ object CardStack {
   }
 
   /**
-   * Creates a new [[CardStack]] from a single [[Card]].
+   * Creates a new [[CardStack]] from a single [[kasino.cards.Card]].
    *
-   * @param card the card that this [[CardStack]] is built from.
+   * @param card the [[kasino.cards.Card]] that this [[CardStack]] is built from.
    * @param owner optional [[Player]] constructing this [[CardStack]].
    * @return a new [[CardStack]] with the same values and points as the provided card, containing the card, and (optionally) with the specified player providing ownerId and ownerName.
    */

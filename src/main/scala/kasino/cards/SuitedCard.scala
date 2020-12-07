@@ -21,12 +21,12 @@ trait SuitedCard extends Card {
   def rank: companion.Rank
 
   /**
-   * [[true]] if this [[SuitedCard]] is Spades (or equivalent suit), as determined by [[suit.isSpades]].
+   * `true` if this [[SuitedCard]] is Spades (or equivalent suit), as determined by [[this.suit.isSpades]].
    */
   override def isSpades: Boolean = suit.isSpades
 
   /**
-   * [[true]] if this [[SuitedCard]] is the Five of Spades (or equivalent card), as determined by [[suit.isSpades]] and [[rank.ordinal]].
+   * `true` if this [[SuitedCard]] is the Five of Spades (or equivalent card), as determined by [[this.suit.isSpades]] and [[this.rank.ordinal]].
    */
   override def isFiveOfSpades: Boolean = isSpades && (rank.ordinal == 5)
 }
@@ -38,20 +38,20 @@ trait SuitedCard extends Card {
  */
 trait SuitedCardCompanion[+C <: SuitedCard] extends CardCompanion[C] {
   /**
-   * Enum type containing all possible suit values for cards of type [[C]].
+   * Enum type containing all possible suit values for cards of type `C`.
    */
   type Suit <: SuitTrait
   /**
-   * Enum type containing all possible rank values for cards of type [[C]]. From zero to however far the card type goes.
+   * Enum type containing all possible rank values for cards of type `C`. From zero to however far the card type goes.
    */
   type Rank <: RankTrait
 
   /**
-   * Creates a [[C]] with the specified [[Suit]] and [[Rank]].
+   * Creates a `C` with the specified [[Suit]] and [[Rank]].
    *
    * @param suit enum-value specifying the suit of the card.
    * @param rank enum-value specifying the rank of the card.
-   * @return a new [[C]] with the specified [[Suit]] and [[Rank]]
+   * @return a new `C` with the specified [[Suit]] and [[Rank]]
    */
   def apply(suit: Suit, rank: Rank): C
 }
@@ -61,7 +61,7 @@ trait SuitedCardCompanion[+C <: SuitedCard] extends CardCompanion[C] {
  */
 trait SuitTrait extends scala.reflect.Enum {
   /**
-   * [[true]] if this suit is Spades (or equivalent).
+   * `true` if this suit is Spades (or equivalent).
    */
   def isSpades: Boolean
 }
@@ -70,6 +70,8 @@ trait SuitTrait extends scala.reflect.Enum {
  * Trait implemented by enums specifying possible ranks for a [[SuitedCard]].
  */
 trait RankTrait extends scala.reflect.Enum {
+  /** A number uniquely identifying a case of an enum */
+  override def ordinal: Int
 }
 
 

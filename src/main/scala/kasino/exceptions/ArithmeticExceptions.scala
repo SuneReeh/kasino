@@ -6,28 +6,28 @@ import OpType._
 
 
 /**
- * Abstract base class for all exceptions thrown by arithmetic operations between [[CardStack]]s.
+ * Abstract base class for all exceptions thrown by arithmetic operations between [[kasino.CardStack]]s.
  *
  * @param message the detail message.
  */
 abstract class ArithmeticException(message: String) extends KasinoException(message) {
   /**
-   * The type of [[CardStack]] operation giving rise to this exception.
+   * The type of [[kasino.CardStack]] operation giving rise to this exception.
    */
   val operation : OpType
 
   /**
-   * The first [[CardStack]] involved in the operation throwing this exception.
+   * The first [[kasino.CardStack]] involved in the operation throwing this exception.
    */
   val firstInput : CardStack
 
   /**
-   * The second [[CardStack]] involved in the operation throwing this exception.
+   * The second [[kasino.CardStack]] involved in the operation throwing this exception.
    */
   val secondInput : CardStack
 
   /**
-   * The optional specified value of the [[CardStack]] supposed to result from the operation throwing this exception.
+   * The optional specified value of the [[kasino.CardStack]] supposed to result from the operation throwing this exception.
    */
   val resultValue : Option[Int]
 }
@@ -38,7 +38,7 @@ abstract class ArithmeticException(message: String) extends KasinoException(mess
 object ArithmeticException {
 
   /**
-   * Enum for the possible operations between [[CardStack]]s: Sum (+), Mod (%), and Combine (&).
+   * Enum for the possible operations between [[kasino.CardStack]]s: Sum (+), Mod (%), and Combine (&).
    */
   enum OpType {
     case Sum, Mod, Combine
@@ -46,17 +46,17 @@ object ArithmeticException {
 }
 
 /**
- * Thrown when an operation between [[CardStack]]s has no legal value for the result -- either because there is no possible value at all, or because an impossible result value has been specified.
+ * Thrown when an operation between [[kasino.CardStack]]s has no legal value for the result -- either because there is no possible value at all, or because an impossible result value has been specified.
  */
 class InvalidResultException private (val operation: OpType, val firstInput : CardStack, val secondInput: CardStack, val resultValue : Option[Int], message : String) extends ArithmeticException(message) {
   /**
    * Creates a new [[InvalidResultException]] with the specified attributes.
    *
-   * @param operation the type of [[CardStack]] operation giving rise to this exception.
-   * @param firstInput the first [[CardStack]] involved in the operation throwing this exception.
-   * @param secondInput the second [[CardStack]] involved in the operation throwing this exception.
+   * @param operation the type of [[kasino.CardStack]] operation giving rise to this exception.
+   * @param firstInput the first [[kasino.CardStack]] involved in the operation throwing this exception.
+   * @param secondInput the second [[kasino.CardStack]] involved in the operation throwing this exception.
    * @param resultValue the optional result value of the operation throwing this exception.
-   * @param messageOverride if present, overrides the detail message for this exception. Defaults to [[None]].
+   * @param messageOverride if present, overrides the detail message for this exception. Defaults to [[scala.None]].
    */
   def this(operation: OpType, firstInput : CardStack, secondInput: CardStack, resultValue : Option[Int] = None, messageOverride: Option[String] = None) = {
     this(operation, firstInput, secondInput, resultValue, messageOverride match {
@@ -74,21 +74,21 @@ class InvalidResultException private (val operation: OpType, val firstInput : Ca
 }
 
 /**
- * Thrown when an operation between [[CardStack]]s has input stacks with multiple values, but no result value has been specified.
+ * Thrown when an operation between [[kasino.CardStack]]s has input stacks with multiple values, but no result value has been specified.
  */
 class AmbiguousResultException private (val operation: OpType, val firstInput : CardStack, val secondInput: CardStack, message : String) extends ArithmeticException(message) {
   /**
-   * Always [[None]] for this exception.
+   * Always [[scala.None]] for this exception.
    */
   val resultValue: None.type = None
 
   /**
    * Creates a new [[AmbiguousResultException]] with the specified attributes.
    *
-   * @param operation the type of [[CardStack]] operation giving rise to this exception.
-   * @param firstInput the first [[CardStack]] involved in the operation throwing this exception.
-   * @param secondInput the second [[CardStack]] involved in the operation throwing this exception.
-   * @param messageOverride if present, overrides the detail message for this exception. Defaults to [[None]].
+   * @param operation the type of [[kasino.CardStack]] operation giving rise to this exception.
+   * @param firstInput the first [[kasino.CardStack]] involved in the operation throwing this exception.
+   * @param secondInput the second [[kasino.CardStack]] involved in the operation throwing this exception.
+   * @param messageOverride if present, overrides the detail message for this exception. Defaults to [[scala.None]].
    */
   def this(operation: OpType, firstInput : CardStack, secondInput: CardStack, messageOverride: Option[String] = None) = {
     this(operation, firstInput, secondInput, messageOverride match {
@@ -103,7 +103,7 @@ class AmbiguousResultException private (val operation: OpType, val firstInput : 
 }
 
 /**
- * Thrown when an operation attempts to change the value of a [[CardStack]] whose value has been locked.
+ * Thrown when an operation attempts to change the value of a [[kasino.CardStack]] whose value has been locked.
  */
 class LockedValueException private (val operation: OpType, val firstInput : CardStack, val secondInput: CardStack, message : String) extends ArithmeticException(message) {
   /**
@@ -114,10 +114,10 @@ class LockedValueException private (val operation: OpType, val firstInput : Card
   /**
    * Creates a new [[LockedValueException]] with the specified attributes.
    *
-   * @param operation the type of [[CardStack]] operation giving rise to this exception. Either [[OpType.Sum]] or [[OpType.Mod]].
-   * @param firstInput the first [[CardStack]] involved in the operation throwing this exception.
-   * @param secondInput the second [[CardStack]] involved in the operation throwing this exception.
-   * @param messageOverride if present, overrides the detail message for this exception. Defaults to [[None]].
+   * @param operation the type of [[kasino.CardStack]] operation giving rise to this exception. Either [[OpType.Sum]] or [[OpType.Mod]].
+   * @param firstInput the first [[kasino.CardStack]] involved in the operation throwing this exception.
+   * @param secondInput the second [[kasino.CardStack]] involved in the operation throwing this exception.
+   * @param messageOverride if present, overrides the detail message for this exception. Defaults to [[scala.None]].
    */
   def this(operation: OpType, firstInput : CardStack, secondInput: CardStack, messageOverride: Option[String] = None) = {
     this(operation, firstInput, secondInput, messageOverride match {

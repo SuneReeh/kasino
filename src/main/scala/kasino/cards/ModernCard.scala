@@ -73,7 +73,7 @@ object ModernCard extends SuitedCardCompanion[ModernCard] {
     case Clubs, Diamonds, Hearts, Spades, Joker
 
     /**
-     * [[true]] if this [[Suit]] equals [[Spades]].
+     * `true` if this [[Suit]] equals [[Suit.Spades]].
      */
     override def isSpades: Boolean = this == Spades
   }
@@ -91,7 +91,7 @@ object ModernCard extends SuitedCardCompanion[ModernCard] {
    *
    * @param name the name of the [[ModernCard]] to create
    * @return a new [[ModernCard]] representing the card with the given name.
-   * @note If `card` is an instance of [[ModernCard]], then {{{ModernCard.stringToCard(card.toString)}}} returns a copy of `card`.
+   * @note If `card` is an instance of [[ModernCard]], then `ModernCard.stringToCard(card.toString)` returns a copy of `card`.
    */
   override def stringToCard(string: String): ModernCard = {
     if string.strip().toLowerCase == "joker" then
