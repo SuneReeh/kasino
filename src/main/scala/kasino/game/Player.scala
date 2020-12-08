@@ -1,12 +1,11 @@
 package kasino.game
 
+import kasino.cards.Card
 import java.util.UUID
+import scala.collection.SeqView
 
-class Player {
-  private var _name : String = ""
-  def name: String = _name
-  private def name_=(name: String): Unit = {_name = name}
-  private val controller : Controller = ???
+class Player (private val controller: Controller, private val handView: SeqView[Card], private val tableView: SeqView[CardStack]) {
+  def name: String = controller.name
 
-  val id : UUID = UUID.randomUUID()
+  val id : UUID = controller.id
 }
