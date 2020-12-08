@@ -1,7 +1,7 @@
 package kasino
 
-import kasino.CardStack
 import kasino.cards._
+import kasino.game.CardStack
 
 import scala.util.Random
 

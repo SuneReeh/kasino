@@ -1,10 +1,10 @@
-package kasino
-
-import java.util.UUID
+package kasino.game
 
 import kasino.cards.Card
-import kasino.exceptions.{AmbiguousResultException, InvalidResultException, LockedValueException}
 import kasino.exceptions.ArithmeticException.OpType
+import kasino.exceptions.{AmbiguousResultException, InvalidResultException, LockedValueException}
+
+import java.util.UUID
 
 /**
  * A stack of cards on the table in a game of "Nørdekasino".

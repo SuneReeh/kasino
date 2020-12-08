@@ -1,4 +1,4 @@
-package kasino
+package kasino.game
 
 import java.util.UUID
 
