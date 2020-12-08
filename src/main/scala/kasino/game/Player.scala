@@ -6,6 +6,7 @@ class Player {
   private var _name : String = ""
   def name: String = _name
   private def name_=(name: String): Unit = {_name = name}
+  private val controller : Controller = ???
 
-  val Id : UUID = UUID.randomUUID()
+  val id : UUID = UUID.randomUUID()
 }
