@@ -89,6 +89,8 @@ class BigRational private(val numerator: BigInt, val denominator: BigInt) extend
 
   def bigDecimalValue: BigDecimal = BigDecimal(numerator) / BigDecimal(denominator)
   
+  def toBigDecimal: BigDecimal = bigDecimalValue
+  
   def doubleValue: Double = bigDecimalValue.toDouble
 
   def floatValue: Float = bigDecimalValue.toFloat
@@ -139,7 +141,7 @@ class BigRational private(val numerator: BigInt, val denominator: BigInt) extend
 
 }
 
-object BigRational extends Serializable {
+object BigRational {
   /** Construct a [[BigRational]] as a fraction of `numerator` by `denominator`. */
   def apply(numerator: BigInt, denominator: BigInt): BigRational = {
     val divisor: BigInt = numerator.gcd(denominator)
