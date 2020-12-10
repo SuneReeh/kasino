@@ -68,7 +68,7 @@ object ModernCard extends SuitedCardCompanion[ModernCard] {
   /**
    * Enum type containing the possible suit values: [[Suit.Clubs]], [[Suit.Diamonds]], [[Suit.Hearts]], [[Suit.Spades]], and [[Suit.Joker]].
    */
-  enum Suit extends java.lang.Enum[Suit] with SuitTrait 
+  enum Suit extends Enum[Suit] with SuitTrait 
   {
     case Clubs, Diamonds, Hearts, Spades, Joker
 
@@ -81,7 +81,7 @@ object ModernCard extends SuitedCardCompanion[ModernCard] {
   /**
    * Enum type containing the possible rank values: [[Rank.Zero]], [[Rank.Ace]], [[Rank.Two]], [[Rank.Three]], ..., [[Rank.Ten]], [[Rank.Jack]], [[Rank.Queen]], [[Rank.King]].
    */
-  enum Rank extends java.lang.Enum[Rank] with RankTrait
+  enum Rank extends Enum[Rank] with RankTrait
   {
     case Zero, Ace, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King
   }

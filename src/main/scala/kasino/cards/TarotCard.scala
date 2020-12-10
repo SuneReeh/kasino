@@ -119,7 +119,7 @@ object TarotCard extends SuitedCardCompanion[TarotCard] {
   /**
    * Enum type containing the possible suit values: [[Suit.Staves]], [[Suit.Coins]], [[Suit.Cups]], [[Suit.Swords]], and [[Suit.Joker]].
    */
-  enum Suit extends java.lang.Enum[Suit] with SuitTrait {
+  enum Suit extends Enum[Suit] with SuitTrait {
     case Staves, Coins, Cups, Swords, Joker
 
     /**
@@ -131,7 +131,7 @@ object TarotCard extends SuitedCardCompanion[TarotCard] {
   /**
    * Enum type containing the possible rank values: [[Rank.Zero]], [[Rank.Ace]], [[Rank.Two]], ..., [[Rank.Ten]], [[Rank.Page]], [[Rank.Knight]], [[Rank.Queen]], [[Rank.King]], [[Rank.Fifteen]], ..., [[Rank.TwentyOne]].
    */
-  enum Rank extends java.lang.Enum[Rank] with RankTrait {
+  enum Rank extends Enum[Rank] with RankTrait {
     case Zero, Ace, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Page, Knight, Queen, King, Fifteen, Sixteen, Seventeen, Eighteen, Nineteen, Twenty, TwentyOne
   }
 
