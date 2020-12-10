@@ -147,6 +147,8 @@ object BigRational {
     val divisor: BigInt = numerator.gcd(denominator)
     new BigRational((numerator / divisor) * denominator.sign, (denominator / divisor) * denominator.sign)
   }
+  
+  def apply(i: BigInt): BigRational = BigRational(i,1)
 
   def apply(str: String): BigRational = {
     val split = str.split("/", 2)
