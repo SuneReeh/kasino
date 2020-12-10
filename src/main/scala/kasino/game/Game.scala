@@ -1,10 +1,11 @@
 package kasino.game
 
 import kasino.cards.Card
+import reeh.math.BigRational
 
 import java.util.UUID
-import scala.collection.mutable
 import scala.collection.mutable.{ArrayDeque, Map, Queue}
+import scala.util.{Try, Success, Failure}
 
 /**
  * A concrete game of "Nørdekasino".
@@ -18,8 +19,8 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
   private val hands: Map[Player, ArrayDeque[Card]] = Map.empty
   private val players: scala.collection.immutable.Seq[Player] =
     scala.util.Random.shuffle(controllers).map{c =>
-      val hand: mutable.ArrayDeque[Card] = ArrayDeque()
-      val player: Player = new Player(c, hand.view, table.view, deckSize)
+      val hand: ArrayDeque[Card] = ArrayDeque()
+      val player: Player = new Player(c, hand.view, table.view, deckSize, ???)
       hands.addOne(player, hand)
       player
     }.toSeq
@@ -34,8 +35,11 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
   private var lastToClaimPosBackup: Option[Int] = None
   
   //End of game
-  private var gameFinished: Boolean = false;
-  //private val scores: Map[Player,???] = Map.empty
+  private var _gameFinished: Boolean = false
+  def gameFinished: Boolean = _gameFinished
+  private val scores: Map[Player,BigRational] = Map.empty
+  private var _resultReport: Option[String] = None
+  def resultReport: Option[String] = _resultReport
   
   /** The number of [[kasino.cards.Card]]s remaining in the deck. */
   def deckSize : Int = deck.size
@@ -46,3 +50,28 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
   /** The name of the current [[Player]]. */
   def currentPlayerName: String = players(currentPlayerPos).name
 }
+
+object Game {
+  enum CardPosition {
+    case Table(i: Int)
+    case Hand(i: Int) 
+  } 
+  
+  sealed trait Action {
+    def apply(): Try[Unit]
+  }
+  
+  import CardPosition._
+  
+  sealed trait ActionProvider {
+    def Play(posHand : Hand): Action
+    def Add(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Action
+    def Mod(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Action
+    def Combine(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Action
+    def Take(posTable: Table, posHand: Hand): Action
+    def FiveOfSpades(posHand : Hand): Action
+    def Reset: Action
+    def End: Action
+  }
+}
+
