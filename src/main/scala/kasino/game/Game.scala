@@ -116,10 +116,10 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
         val usedCardCheck = checkNoUsedCard()
         if usedCardCheck.isFailure then return usedCardCheck
         
-        val card = Try(hands(currentPlayerId).remove(posHand.i))
+        val card = Try(hands(playerId).remove(posHand.i))
         if card.isFailure then return Failure(card.failed.get)
         usedCard = Some(card.get)
-        table.append(CardStack(card.get))
+        table.append(CardStack(card.get,playersById(playerId)))
         Success(())
       }
     }
@@ -128,7 +128,37 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       def apply(): Try[Unit] = {
         val turnCheck = checkHasTurn()
         if turnCheck.isFailure then return turnCheck
-        ???
+        
+        def tableAndHand (tablePos: Int, handPos: Int): Try[Unit] =
+          val playerHand = hands(playerId)
+          val result = Try( (table(tablePos) + CardStack(playerHand(handPos))) (res,Some(playersById(playerId))) )
+          if result.isFailure then return Failure(result.failed.get)
+          table.update(tablePos,result.get)
+          usedCard = Some(playerHand(handPos))
+          playerHand.remove(handPos)
+          checkFor42(Table(tablePos))
+          Success(())
+
+        def tableAndTable (tablePosMin: Int, tablePosMax: Int): Try[Unit] =
+          val result = Try( (table(tablePosMin) + table(tablePosMax)) (res,Some(playersById(playerId))) )
+          if result.isFailure then return Failure(result.failed.get)
+          table.update(tablePosMin,result.get)
+          table.remove(tablePosMax)
+          checkFor42(Table(tablePosMin))
+          Success(())
+        
+        pos1 match {
+          case Hand(handPos) => pos2 match {
+            case Hand(_) => return Failure(new MultipleCardsPlayedException)
+            case Table(tablePos) => tableAndHand(tablePos, handPos)
+          }
+          case Table(tablePos1) => pos2 match {
+            case Hand(handPos) => tableAndHand(tablePos1, handPos)
+            case Table(tablePos2) => 
+              if tablePos1 == tablePos2 then return Failure(new IllegalArgumentException("Cannot add a CardStack with itself."))
+              tableAndTable(tablePos1 min tablePos2, tablePos1 max tablePos2)
+          }
+        }
       }
     }
 
