@@ -1,7 +1,7 @@
 package kasino.game
 
 import kasino.cards.Card
-import kasino.exceptions.TurnOrderException
+import kasino.exceptions.{MultipleCardsPlayedException, TurnOrderException}
 import kasino.game.Game.{Action, ActionProvider, CardPosition}
 import kasino.game.Game.CardPosition._
 import reeh.math.BigRational
@@ -97,24 +97,36 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
   }
   
   private def generatePlayerActions(playerId: UUID): ActionProvider = new ActionProvider {
-    private def checkTurn(): Try[Unit] =
+    private def checkHasTurn(): Try[Unit] =
       if playerId != currentPlayerId then
         return Failure(new TurnOrderException(playersById(playerId), players(currentPlayerPos)))
+      Success(())
+    
+    private def checkNoUsedCard(): Try[Unit] =
+      if usedCard != None then
+        return Failure(new MultipleCardsPlayedException)
       Success(())
     
     private def checkFor42(posTable: Table): Boolean = ???
     
     override def play(posHand: Hand): Action = new Action {
       def apply(): Try[Unit] = {
-        val turnCheck = checkTurn()
+        val turnCheck = checkHasTurn()
         if turnCheck.isFailure then return turnCheck
-        ???
+        val usedCardCheck = checkNoUsedCard()
+        if usedCardCheck.isFailure then return usedCardCheck
+        
+        val card = Try(hands(currentPlayerId).remove(posHand.i))
+        if card.isFailure then return Failure(card.failed.get)
+        usedCard = Some(card.get)
+        table.append(CardStack(card.get))
+        Success(())
       }
     }
 
     override def add(pos1: Game.CardPosition, pos2: Game.CardPosition, res: Option[Int]): Action = new Action {
       def apply(): Try[Unit] = {
-        val turnCheck = checkTurn()
+        val turnCheck = checkHasTurn()
         if turnCheck.isFailure then return turnCheck
         ???
       }
@@ -122,7 +134,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
 
     override def mod(pos1: Game.CardPosition, pos2: Game.CardPosition, res: Option[Int]): Action = new Action {
       def apply(): Try[Unit] = {
-        val turnCheck = checkTurn()
+        val turnCheck = checkHasTurn()
         if turnCheck.isFailure then return turnCheck
         ???
       }
@@ -130,7 +142,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
 
     override def combine(pos1: Game.CardPosition, pos2: Game.CardPosition, res: Option[Int]): Action = new Action {
       def apply(): Try[Unit] = {
-        val turnCheck = checkTurn()
+        val turnCheck = checkHasTurn()
         if turnCheck.isFailure then return turnCheck
         ???
       }
@@ -138,31 +150,35 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
 
     override def take(posTable: Table, posHand: Hand): Action = new Action {
       def apply(): Try[Unit] = {
-        val turnCheck = checkTurn()
+        val turnCheck = checkHasTurn()
         if turnCheck.isFailure then return turnCheck
+        val usedCardCheck = checkNoUsedCard()
+        if usedCardCheck.isFailure then return usedCardCheck
         ???
       }
     }
 
     override def fiveOfSpades(posHand: Hand): Action = new Action {
       def apply(): Try[Unit] = {
-        val turnCheck = checkTurn()
+        val turnCheck = checkHasTurn()
         if turnCheck.isFailure then return turnCheck
+        val usedCardCheck = checkNoUsedCard()
+        if usedCardCheck.isFailure then return usedCardCheck
         ???
       }
     }
 
     override def reset: Action = new Action {
       def apply(): Try[Unit] = {
-        val turnCheck = checkTurn()
+        val turnCheck = checkHasTurn()
         if turnCheck.isFailure then return turnCheck
-        ???
+        Try(resetTurn())
       }
     }
 
     override def end: Action = new Action {
       def apply(): Try[Unit] = {
-        val turnCheck = checkTurn()
+        val turnCheck = checkHasTurn()
         if turnCheck.isFailure then return turnCheck
         ???
       }
