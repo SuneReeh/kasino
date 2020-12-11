@@ -17,12 +17,14 @@ class Player (private val controller: Controller,
 
   val id : UUID = controller.id
 
-  private def Play(posHand: Hand): Try[Unit] = actions.Play(posHand)()
-  private def Add(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Try[Unit] = actions.Add(pos1,pos2,res)()
-  private def Mod(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Try[Unit] = actions.Mod(pos1,pos2,res)()
-  private def Combine(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Try[Unit] = actions.Combine(pos1,pos2,res)()
-  private def Take(posTable: Table, posHand: Hand): Try[Unit] = actions.Take(posTable, posHand)()
-  private def FiveOfSpades(posHand : Hand): Try[Unit] = actions.FiveOfSpades(posHand)()
-  private def Reset: Try[Unit] = actions.Reset()
-  private def End: Try[Unit] = actions.End()
+  private def play(posHand: Hand): Try[Unit] = actions.play(posHand)()
+  private def add(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Try[Unit] = actions.add(pos1,pos2,res)()
+  private def mod(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Try[Unit] = actions.mod(pos1,pos2,res)()
+  private def combine(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Try[Unit] = actions.combine(pos1,pos2,res)()
+  private def take(posTable: Table, posHand: Hand): Try[Unit] = actions.take(posTable, posHand)()
+  private def fiveOfSpades(posHand : Hand): Try[Unit] = actions.fiveOfSpades(posHand)()
+  private def reset(): Try[Unit] = actions.reset()
+  private def end(): Try[Unit] = actions.end()
+  
+  def takeTurn(): Unit = ???
 }

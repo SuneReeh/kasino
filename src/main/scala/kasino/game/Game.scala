@@ -14,10 +14,17 @@ import scala.util.{Failure, Success, Try}
  * A concrete game of "Nørdekasino".
  * 
  * @param controllers controllers for the [[Player]]s in this game.
- * @param newDeck a deck of [[kasino.cards.Card]]s with which to play a game.
+ * @param newDeck a deck of [[kasino.cards.Card]]s with which to play a game. Needs at least `4* controllers.size +2` cards.
  */
 class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
-  private val deck: ArrayDeque[Card] = Queue(scala.util.Random.shuffle(newDeck).toSeq: _*)
+  require(newDeck.size >= 4 * controllers.size + 2, "The provided deck is too small for a game with " + controllers.size + " players.")
+  
+  private class Deck (deck: Iterable[Card]) extends Queue[Card](deck.size) {
+    this.appendAll(deck)
+    
+    def draw(): Card = removeHead()
+  }
+  private val deck: Deck = new Deck(scala.util.Random.shuffle(newDeck))
   private val table: ArrayDeque[CardStack] = ArrayDeque()
   private val hands: Map[UUID, ArrayDeque[Card]] = Map.empty
   private val playersById: Map[UUID, Player] = Map.empty
@@ -30,14 +37,20 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       player
     }.toSeq
   private val numPlayers = players.size
+  
+  //Start of game
+  private var _gameStarted: Boolean = false
+  def gameStarted: Boolean = _gameStarted
+  
+  //State for current turn
   private var currentPlayerPos: Int = 0
-  private var lastToClaimPos: Option[Int] = None
+  private var lastToClaim: Option[UUID] = None
   private val cardsToClaim: ArrayDeque[Card] = ArrayDeque()
   private var usedCard: Option[Card] = None
 
   //Backup game state from the beginning of each turn 
   private var tableBackup: ArrayDeque[CardStack] = ArrayDeque()
-  private var lastToClaimPosBackup: Option[Int] = None
+  private var lastToClaimBackup: Option[UUID] = None
   
   //End of game
   private var _gameFinished: Boolean = false
@@ -55,13 +68,43 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
   /** The name of the current [[Player]]. */
   def currentPlayerName: String = players(currentPlayerPos).name
   
+  def start(): Try[Unit] = {
+    if _gameStarted then
+      return Failure(new RuntimeException("Game already running."))
+    for player <- players do 
+      for i <- 1 to 4 do 
+        hands(player.id).append(deck.draw())
+    for i <- 1 to 2 do
+      table.append(CardStack(deck.draw()))
+    currentPlayerPos = 0
+    usedCard = None
+    lastToClaim = None
+    lastToClaimBackup = None
+    cardsToClaim.clear()
+    tableBackup = table.clone()
+    _gameStarted = true
+    players(currentPlayerPos).takeTurn()
+    return Success(())
+  }
+  
+  private def resetTurn(): Unit = {
+    table.clear()
+    table.appendAll(tableBackup)
+    for card <- usedCard do
+      hands(currentPlayerId).append(card)
+    lastToClaim = lastToClaimBackup
+    cardsToClaim.clear()
+  }
+  
   private def generatePlayerActions(playerId: UUID): ActionProvider = new ActionProvider {
     private def checkTurn(): Try[Unit] =
       if playerId != currentPlayerId then
         return Failure(new TurnOrderException(playersById(playerId), players(currentPlayerPos)))
       Success(())
     
-    override def Play(posHand: Hand): Action = new Action {
+    private def checkFor42(posTable: Table): Boolean = ???
+    
+    override def play(posHand: Hand): Action = new Action {
       def apply(): Try[Unit] = {
         val turnCheck = checkTurn()
         if turnCheck.isFailure then return turnCheck
@@ -69,7 +112,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       }
     }
 
-    override def Add(pos1: Game.CardPosition, pos2: Game.CardPosition, res: Option[Int]): Action = new Action {
+    override def add(pos1: Game.CardPosition, pos2: Game.CardPosition, res: Option[Int]): Action = new Action {
       def apply(): Try[Unit] = {
         val turnCheck = checkTurn()
         if turnCheck.isFailure then return turnCheck
@@ -77,7 +120,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       }
     }
 
-    override def Mod(pos1: Game.CardPosition, pos2: Game.CardPosition, res: Option[Int]): Action = new Action {
+    override def mod(pos1: Game.CardPosition, pos2: Game.CardPosition, res: Option[Int]): Action = new Action {
       def apply(): Try[Unit] = {
         val turnCheck = checkTurn()
         if turnCheck.isFailure then return turnCheck
@@ -85,7 +128,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       }
     }
 
-    override def Combine(pos1: Game.CardPosition, pos2: Game.CardPosition, res: Option[Int]): Action = new Action {
+    override def combine(pos1: Game.CardPosition, pos2: Game.CardPosition, res: Option[Int]): Action = new Action {
       def apply(): Try[Unit] = {
         val turnCheck = checkTurn()
         if turnCheck.isFailure then return turnCheck
@@ -93,7 +136,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       }
     }
 
-    override def Take(posTable: Table, posHand: Hand): Action = new Action {
+    override def take(posTable: Table, posHand: Hand): Action = new Action {
       def apply(): Try[Unit] = {
         val turnCheck = checkTurn()
         if turnCheck.isFailure then return turnCheck
@@ -101,7 +144,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       }
     }
 
-    override def FiveOfSpades(posHand: Hand): Action = new Action {
+    override def fiveOfSpades(posHand: Hand): Action = new Action {
       def apply(): Try[Unit] = {
         val turnCheck = checkTurn()
         if turnCheck.isFailure then return turnCheck
@@ -109,7 +152,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       }
     }
 
-    override def Reset: Action = new Action {
+    override def reset: Action = new Action {
       def apply(): Try[Unit] = {
         val turnCheck = checkTurn()
         if turnCheck.isFailure then return turnCheck
@@ -117,7 +160,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       }
     }
 
-    override def End: Action = new Action {
+    override def end: Action = new Action {
       def apply(): Try[Unit] = {
         val turnCheck = checkTurn()
         if turnCheck.isFailure then return turnCheck
@@ -139,14 +182,14 @@ object Game {
   
   
   sealed trait ActionProvider {
-    def Play(posHand : Hand): Action
-    def Add(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Action
-    def Mod(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Action
-    def Combine(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Action
-    def Take(posTable: Table, posHand: Hand): Action
-    def FiveOfSpades(posHand : Hand): Action
-    def Reset: Action
-    def End: Action
+    def play(posHand : Hand): Action
+    def add(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Action
+    def mod(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Action
+    def combine(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Action
+    def take(posTable: Table, posHand: Hand): Action
+    def fiveOfSpades(posHand : Hand): Action
+    def reset: Action
+    def end: Action
   }
 }
 
