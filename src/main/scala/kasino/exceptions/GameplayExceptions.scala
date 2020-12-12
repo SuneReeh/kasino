@@ -1,6 +1,7 @@
 package kasino.exceptions
 
-import kasino.game.Player
+import kasino.cards.Card
+import kasino.game.{CardStack, Player}
 
 abstract class GameplayException(message: String) extends KasinoException(message) 
 
@@ -17,3 +18,7 @@ class TurnOrderException private (playerActing: Player, playerAtTurn: Player, me
 class MultipleCardsPlayedException extends GameplayException("You cannot play more than one card per turn.")
 
 class NoCardsPlayedException extends GameplayException("You must play a card each turn.")
+
+class IllegalClaimException(stack: CardStack, card: Card) extends GameplayException("You cannot claim a CardStack with values " + stack.values + " using a card with values " + card.values + ".")
+
+class AttemptToClearEmptyTableException extends GameplayException("You cannot clear an already empty table.")

@@ -1,7 +1,7 @@
 package kasino.game
 
 import kasino.cards.Card
-import kasino.exceptions.{MultipleCardsPlayedException, TurnOrderException}
+import kasino.exceptions.{AttemptToClearEmptyTableException, IllegalClaimException, MultipleCardsPlayedException, TurnOrderException}
 import kasino.game.Game.{Action, ActionProvider, CardPosition}
 import kasino.game.Game.CardPosition._
 import reeh.math.BigRational
@@ -96,6 +96,10 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
     cardsToClaim.clear()
   }
   
+  private def endTurn(): Try[Unit] = {
+    ???
+  }
+  
   private def generatePlayerActions(playerId: UUID): ActionProvider = new ActionProvider {
     private def checkHasTurn(): Try[Unit] =
       if playerId != currentPlayerId then
@@ -111,7 +115,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       if !table(posTable.i).values.contains(42) then return false
       val stack = table.remove(posTable.i) 
       cardsToClaim.appendAll(stack.cards)
-      lastToClaim = Some(currentPlayerId)
+      lastToClaim = Some(playerId)
       true
     }
     
@@ -266,7 +270,18 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
         if turnCheck.isFailure then return turnCheck
         val usedCardCheck = checkNoUsedCard()
         if usedCardCheck.isFailure then return usedCardCheck
-        ???
+        
+        val stack = table(posTable.i)
+        val hand = hands(playerId)
+        val card = hand(posHand.i)
+        if stack.values.intersect(card.values).isEmpty then return Failure(new IllegalClaimException(stack,card))
+        usedCard = Some(card)
+        cardsToClaim.append(card)
+        cardsToClaim.appendAll(stack.cards)
+        lastToClaim = Some(playerId)
+        hand.remove(posHand.i)
+        table.remove(posTable.i)
+        Success(())
       }
     }
 
@@ -276,7 +291,20 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
         if turnCheck.isFailure then return turnCheck
         val usedCardCheck = checkNoUsedCard()
         if usedCardCheck.isFailure then return usedCardCheck
-        ???
+        
+        val hand = hands(playerId)
+        val card = hand(posHand.i)
+        if !card.isFiveOfSpades then return Failure(new IllegalArgumentException(card.toString + " is not the Five of Spades."))
+        if table.isEmpty then return Failure(new AttemptToClearEmptyTableException)
+        
+        usedCard = Some(card)
+        cardsToClaim.append(card)
+        for stack <- table do 
+          cardsToClaim.appendAll(stack.cards)
+        hand.remove(posHand.i)
+        table.clear()
+        lastToClaim = Some(playerId)
+        Success(())
       }
     }
 
@@ -292,7 +320,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       def apply(): Try[Unit] = {
         val turnCheck = checkHasTurn()
         if turnCheck.isFailure then return turnCheck
-        ???
+        endTurn()
       }
     }
   }
