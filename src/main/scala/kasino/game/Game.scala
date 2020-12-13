@@ -198,44 +198,44 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
     def pluralS(value: BigRational): String = if value.ceil != 1 then "s" else ""
     for player <- players do
       val playerId = player.id
-      report.append(s"${player.name}\n")
+      report ++= s"${player.name}\n"
       // 1 point (distributed) for having most cards
       var point: BigRational = if numCards(playerId) == maxCards then BigRational(1, numWithMaxCards) else 0
       scores(playerId) += point
-      report.append(s"${numCards(playerId)} card${pluralS(numCards(playerId))}: ${point} point${pluralS(point)}\n")
+      report ++= s"${numCards(playerId)} card${pluralS(numCards(playerId))}: ${point} point${pluralS(point)}\n"
       // 2 points (distributed) for having most spades
       point = if numSpades(playerId) == maxSpades then BigRational(2, numWithMaxSpades) else 0
       scores(playerId) += point
-      report.append(s"${numSpades(playerId)} spade${pluralS(numSpades(playerId))}: ${point} point${pluralS(point)}\n")
+      report ++= s"${numSpades(playerId)} spade${pluralS(numSpades(playerId))}: ${point} point${pluralS(point)}\n"
       // 1 point per table clears
       point = clears(playerId)
       if point > 0 then
         scores(playerId) += point
-        report.append(s"${point} table clear${pluralS(point)}: ${point} point${pluralS(point)}\n")
+        report ++= s"${point} table clear${pluralS(point)}: ${point} point${pluralS(point)}\n"
       // 1 point for final trick
       if lastToClaim != None && playerId == lastToClaim.get then
         scores(playerId) += 1
-        report.append("Last trick: 1 point\n")
+        report ++= "Last trick: 1 point\n"
       // kasino.cards worth points
       for card <- claimedCards(playerId) do
         if card.points > 0 then
           scores(playerId) += card.points
-          report.append(s"${card}: ${card.points} point${pluralS(card.points)}\n")
+          report ++= s"${card}: ${card.points} point${pluralS(card.points)}\n"
       // total points
-      report.append(s"Total points for ${player.name}: ${scores(playerId)}\n------\n")
+      report ++= s"Total points for ${player.name}: ${scores(playerId)}\n------\n"
     // Declare winner
     val maxPoints = scores.values.max
     val isDraw = (scores.values.count(_ == maxPoints) > 1)
     if !isDraw then 
       for player <- players do
         if scores(player.id) == maxPoints then
-          report.append(s"The winner is ${player.name} with ${maxPoints} point${pluralS(maxPoints)}!\n")
+          report ++= s"The winner is ${player.name} with ${maxPoints} point${pluralS(maxPoints)}!\n"
     else
       val winners: ArrayDeque[Player] = ArrayDeque()
       for player <- players do
         if scores(player.id) == maxPoints then
           winners.append(player)
-      report.append(s"Shared victory between ${winners.map(_.name).mkString(", ")} with ${maxPoints} point${pluralS(maxPoints)}!")
+      report ++= s"Shared victory between ${winners.map(_.name).mkString(", ")} with ${maxPoints} point${pluralS(maxPoints)}!"
     resultReport = Some(report.result())
   }
   
