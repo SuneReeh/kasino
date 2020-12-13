@@ -97,7 +97,9 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
   }
 
   def run(): Unit = {
-
+    setup()
+    while !gameFinished do
+      players(currentPlayerPos).takeTurn()
   }
   
   private def resetTurn(): Unit = {
