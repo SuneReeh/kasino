@@ -52,7 +52,7 @@ class Player (private val controller: Controller,
         case Failure(otherException) => otherException.printStackTrace()
         case _ => ()
       }
-      action == End && attempt.isSuccess
+      !(action == End && attempt.isSuccess)
     } do ()
   }
 }
