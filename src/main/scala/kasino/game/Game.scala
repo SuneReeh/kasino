@@ -31,7 +31,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
   private val players: scala.collection.immutable.Seq[Player] =
     scala.util.Random.shuffle(controllers).map{c =>
       val hand: ArrayDeque[Card] = ArrayDeque()
-      val player: Player = new Player(c, hand.view, table.view, deckSize, generatePlayerActions(c.id))
+      val player: Player = new Player(c, hand.view, table.view, deckSize, currentPlayerId, currentPlayerName, generatePlayerActions(c.id))
       hands.addOne(player.id, hand)
       playersById.addOne(player.id, player)
       claimedCards.addOne(player.id, ArrayDeque())

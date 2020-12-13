@@ -12,6 +12,8 @@ class Player (private val controller: Controller,
               private val handView: SeqView[Card], 
               private val tableView: SeqView[CardStack],
               deckSize: =>Int,
+              currentPlayerId: =>UUID,
+              currentPlayerName: =>String,
               actions: Game.ActionProvider) {
   def name: String = controller.name
 
@@ -27,4 +29,17 @@ class Player (private val controller: Controller,
   private def end(): Try[Unit] = actions.end()
   
   def takeTurn(): Unit = ???
+}
+
+object Player {
+  enum Action {
+    case Play(posHand: Hand)
+    case Add(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None)
+    case Mod(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None)
+    case Combine(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None)
+    case Take(posTable: Table, posHand: Hand)
+    case FiveOfSpades(posHand : Hand)
+    case Reset
+    case End
+  }
 }
