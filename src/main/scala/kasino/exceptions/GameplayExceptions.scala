@@ -22,3 +22,8 @@ class NoCardsPlayedException extends GameplayException("You must play a card eac
 class IllegalClaimException(stack: CardStack, card: Card) extends GameplayException("You cannot claim a CardStack with values " + stack.values + " using a card with values " + card.values + ".")
 
 class AttemptToClearEmptyTableException extends GameplayException("You cannot clear an already empty table.")
+
+class MultipleStacksOwnedException(messageOverride: Option[String]=None) extends 
+  GameplayException(if messageOverride != None then messageOverride.get else "Cannot leave behind multiple stacks owned by the player.")
+
+class UnableToClaimException(stack: CardStack) extends GameplayException("Has no card in hand that can claim the owned stack: " + stack + ".")
