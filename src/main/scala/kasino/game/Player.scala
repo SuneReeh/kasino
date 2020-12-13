@@ -35,6 +35,8 @@ class Player (private val controller: Controller,
   
   def takeTurn(): Unit = {
     import Player.Action._
+    
+    while !controller.getReady() do ()
     while {
       val action = controller.getAction()
       val attempt: Try[Unit] = action match {
