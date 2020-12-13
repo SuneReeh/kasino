@@ -18,10 +18,10 @@ import scala.util.{Failure, Success, Try}
  */
 class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
   require(newDeck.size >= 4 * controllers.size + 2, "The provided deck is too small for a game with " + controllers.size + " players.")
-  
+
   private class Deck (deck: Iterable[Card]) extends Queue[Card](deck.size) {
     this.appendAll(deck)
-    
+
     def draw(): Card = removeHead()
   }
   private val deck: Deck = new Deck(scala.util.Random.shuffle(newDeck))
@@ -39,12 +39,12 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       player
     }.toSeq
   private val numPlayers = players.size
-  
+
   //Start of game
   private var _gameStarted: Boolean = false
   def gameStarted: Boolean = _gameStarted
   private def gameStarted_=(gameStarted: Boolean): Unit = _gameStarted = gameStarted
-  
+
   //State for current turn
   private var currentPlayerPos: Int = 0
   private var lastToClaim: Option[UUID] = None
@@ -54,11 +54,11 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
   //Backup game state from the beginning of each turn 
   private var tableBackup: ArrayDeque[CardStack] = ArrayDeque()
   private var lastToClaimBackup: Option[UUID] = None
-  
+
   //State for claimed cards
   private val claimedCards: Map[UUID,ArrayDeque[Card]] = Map.empty
   private var clears: Map[UUID, Int] = Map.empty
-  
+
   //End of game
   private var _gameFinished: Boolean = false
   def gameFinished: Boolean = _gameFinished
@@ -67,21 +67,21 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
   private var _resultReport: Option[String] = None
   def resultReport: Option[String] = _resultReport
   private def resultReport_=(resultReport: Option[String]): Unit = _resultReport = resultReport
-  
+
   /** The number of [[kasino.cards.Card]]s remaining in the deck. */
   def deckSize : Int = deck.size
-  
+
   /** The [[java.util.UUID]] of the current [[Player]]. */
   def currentPlayerId: UUID = players(currentPlayerPos).id
-  
+
   /** The name of the current [[Player]]. */
   def currentPlayerName: String = players(currentPlayerPos).name
-  
+
   def setup(): Try[Unit] = {
     if gameStarted then
       return Failure(new RuntimeException("Game already running."))
-    for player <- players do 
-      for i <- 1 to 4 do 
+    for player <- players do
+      for i <- 1 to 4 do
         hands(player.id).append(deck.draw())
     for i <- 1 to 2 do
       table.append(CardStack(deck.draw()))
@@ -101,12 +101,12 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
     while !gameFinished do
       players(currentPlayerPos).takeTurn()
   }
-  
+
   private def postGameState(): Unit = {
-    for player <- players do 
+    for player <- players do
       player.updateGameState()
   }
-  
+
   private def resetTurn(): Unit = {
     table.clear()
     table.appendAll(tableBackup)
@@ -115,7 +115,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
     lastToClaim = lastToClaimBackup
     cardsToClaim.clear()
   }
-  
+
   private def endTurn(): Try[Unit] = {
     if usedCard == None then
       return Failure(new NoCardsPlayedException)
@@ -155,7 +155,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       newHands()
     Success(())
   }
-  
+
 
 
   private def newHands(): Unit = {
@@ -226,7 +226,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
     // Declare winner
     val maxPoints = scores.values.max
     val isDraw = (scores.values.count(_ == maxPoints) > 1)
-    if !isDraw then 
+    if !isDraw then
       for player <- players do
         if scores(player.id) == maxPoints then
           report ++= s"The winner is ${player.name} with ${maxPoints} point${pluralS(maxPoints)}!\n"
