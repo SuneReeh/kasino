@@ -102,6 +102,11 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       players(currentPlayerPos).takeTurn()
   }
   
+  private def postGameState(): Unit = {
+    for player <- players do 
+      player.updateGameState()
+  }
+  
   private def resetTurn(): Unit = {
     table.clear()
     table.appendAll(tableBackup)
@@ -264,6 +269,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
         if card.isFailure then return Failure(card.failed.get)
         usedCard = Some(card.get)
         table.append(CardStack(card.get,playersById(playerId)))
+        postGameState()
         Success(())
       }
     }
@@ -284,6 +290,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
           usedCard = Some(playerHand(handPos))
           playerHand.remove(handPos)
           checkFor42(Table(tablePos))
+          postGameState()
           Success(())
         }
 
@@ -293,6 +300,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
           table.update(tablePosMin, result.get)
           table.remove(tablePosMax)
           checkFor42(Table(tablePosMin))
+          postGameState()
           Success(())
         }
         
@@ -327,6 +335,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
           usedCard = Some(playerHand(handPos))
           playerHand.remove(handPos)
           checkFor42(Table(tablePos))
+          postGameState()
           Success(())
         }
 
@@ -339,6 +348,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
           table.update(tablePosMin, result.get)
           table.remove(tablePosMax)
           checkFor42(Table(tablePosMin))
+          postGameState()
           Success(())
         }
 
@@ -372,6 +382,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
           table.update(tablePos, result.get)
           usedCard = Some(playerHand(handPos))
           playerHand.remove(handPos)
+          postGameState()
           Success(())
         }
 
@@ -380,6 +391,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
           if result.isFailure then return Failure(result.failed.get)
           table.update(tablePosMin, result.get)
           table.remove(tablePosMax)
+          postGameState()
           Success(())
         }
 
@@ -415,6 +427,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
         lastToClaim = Some(playerId)
         hand.remove(posHand.i)
         table.remove(posTable.i)
+        postGameState()
         Success(())
       }
     }
@@ -438,6 +451,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
         hand.remove(posHand.i)
         table.clear()
         lastToClaim = Some(playerId)
+        postGameState()
         Success(())
       }
     }
@@ -446,7 +460,10 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       def apply(): Try[Unit] = {
         val turnCheck = checkHasTurn()
         if turnCheck.isFailure then return turnCheck
-        Try(resetTurn())
+        val attempt = Try(resetTurn())
+        if attempt.isSuccess then
+          postGameState()
+        attempt
       }
     }
 
@@ -454,7 +471,10 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       def apply(): Try[Unit] = {
         val turnCheck = checkHasTurn()
         if turnCheck.isFailure then return turnCheck
-        endTurn()
+        val attempt = endTurn()
+        if attempt.isSuccess then
+          postGameState()
+        attempt
       }
     }
   }
