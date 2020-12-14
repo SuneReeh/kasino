@@ -39,7 +39,7 @@ class ConsoleController extends Controller {
     for (card, i) <- handView.zipWithIndex do
       state ++= s"h$i -- $card  Value${pluralS(card.values.size)}: "
       state ++= card.values.mkString(", ")
-      state ++= s"  Points: ${card.points}\n\n"
+      state ++= s"  Points: ${card.points}\n"
     if currentPlayerId != id then
       state ++= s"Is if ${currentPlayerName}'s turn.\n"
     latestGameState = state.result()
