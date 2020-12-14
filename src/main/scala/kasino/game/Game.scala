@@ -36,7 +36,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
   private val cardsToClaim: ArrayDeque[Card] = ArrayDeque()
   private var usedCard: Option[Card] = None
 
-  //Backup game state from the beginning of each turn 
+  //Backup game state from the beginning of each turn
   private var tableBackup: ArrayDeque[CardStack] = ArrayDeque()
   private var lastToClaimBackup: Option[UUID] = None
 
@@ -52,7 +52,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
   private var _resultReport: Option[String] = None
   def resultReport: Option[String] = _resultReport
   private def resultReport_=(resultReport: Option[String]): Unit = _resultReport = resultReport
-  
+
   //Primary game state
   private val deck: Deck = new Deck(scala.util.Random.shuffle(newDeck))
   private val table: ArrayDeque[CardStack] = ArrayDeque()
@@ -69,7 +69,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       player
     }.toSeq
   private val numPlayers = players.size
-  
+
 
   /** The number of [[kasino.cards.Card]]s remaining in the deck. */
   def deckSize : Int = deck.size
@@ -127,7 +127,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
     var ownedPos: Option[Int] = None
     var ownedStack: Option[CardStack] = None
     for (stack, i) <- table.view.zipWithIndex do
-      if stack.ownerId == playerId then
+      if stack.ownerId == Some(playerId) then
         numOwnedStacks += 1
         ownedStack = Some(stack)
         ownedPos = Some(i)
