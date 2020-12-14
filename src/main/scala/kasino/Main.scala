@@ -9,12 +9,32 @@ import scala.io.StdIn
 import scala.util.{Failure, Random, Success, Try}
 
 object Main {
-
-  private def clearConsole(): Unit = print("\u001b[2J")
+  private val isWindows: Boolean = System.getProperty("os.name").toLowerCase.startsWith("win")
+  
+  def clearConsole(): Unit = {
+    if isWindows then {
+      //scala.sys.process.stringSeqToProcess(Seq("cmd", "/c", "cls")).!<
+      new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor()
+    };
+    else
+      print("\u001b[2J")
+      print("\u001b[H")
+  }
   
   def main(args: Array[String]): Unit = {
+    if isWindows then
+      Console.withIn(new java.io.InputStreamReader(System.in, java.nio.charset.Charset.forName("windows-1252"))) {
+        Console.withOut(new java.io.PrintStream(System.out, false, java.nio.charset.Charset.forName("windows-1252"))) {
+          runGame()
+        }
+      }
+    else
+      runGame()
+  }
+
+  def runGame(): Unit = {
     clearConsole()
-    println("Welcome to 'Nørdekasino'")
+    println("Welcome to 'Noerdekasino'")
     val numPlayers: Int = {
       var input: Try[Int] = Success(0)
       while {
