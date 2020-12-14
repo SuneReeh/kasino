@@ -431,14 +431,17 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
         if turnCheck.isFailure then return turnCheck
         val usedCardCheck = checkNoUsedCard()
         if usedCardCheck.isFailure then return usedCardCheck
-        
-        val stack = table(posTable.i)
+
+        val stack = Try(table(posTable.i))
+        if stack.isFailure then return Failure(stack.failed.get)
         val hand = hands(playerId)
-        val card = hand(posHand.i)
-        if stack.values.intersect(card.values).isEmpty then return Failure(new IllegalClaimException(stack,card))
-        usedCard = Some(card)
-        cardsToClaim.append(card)
-        cardsToClaim.appendAll(stack.cards)
+        val card = Try(hand(posHand.i))
+        if card.isFailure then return Failure(card.failed.get)
+        
+        if stack.get.values.intersect(card.get.values).isEmpty then return Failure(new IllegalClaimException(stack.get,card.get))
+        usedCard = Some(card.get)
+        cardsToClaim.append(card.get)
+        cardsToClaim.appendAll(stack.get.cards)
         lastToClaim = Some(playerId)
         hand.remove(posHand.i)
         table.remove(posTable.i)
@@ -455,12 +458,15 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
         if usedCardCheck.isFailure then return usedCardCheck
         
         val hand = hands(playerId)
-        val card = hand(posHand.i)
-        if !card.isFiveOfSpades then return Failure(new IllegalArgumentException(card.toString + " is not the Five of Spades."))
+        val card = Try(hand(posHand.i))
+        if card.isFailure then return Failure(card.failed.get)
+
+
+        if !card.get.isFiveOfSpades then return Failure(new IllegalArgumentException(card.get.toString + " is not the Five of Spades."))
         if table.isEmpty then return Failure(new AttemptToClearEmptyTableException)
         
-        usedCard = Some(card)
-        cardsToClaim.append(card)
+        usedCard = Some(card.get)
+        cardsToClaim.append(card.get)
         for stack <- table do 
           cardsToClaim.appendAll(stack.cards)
         hand.remove(posHand.i)
