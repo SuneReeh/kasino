@@ -24,21 +24,6 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
 
     def draw(): Card = removeHead()
   }
-  private val deck: Deck = new Deck(scala.util.Random.shuffle(newDeck))
-  private val table: ArrayDeque[CardStack] = ArrayDeque()
-  private val hands: Map[UUID, ArrayDeque[Card]] = Map.empty
-  private val playersById: Map[UUID, Player] = Map.empty
-  private val players: scala.collection.immutable.Seq[Player] =
-    scala.util.Random.shuffle(controllers).map{c =>
-      val hand: ArrayDeque[Card] = ArrayDeque()
-      val player: Player = new Player(c, hand.view, table.view, deckSize, currentPlayerId, currentPlayerName, generatePlayerActions(c.id))
-      hands.addOne(player.id, hand)
-      playersById.addOne(player.id, player)
-      claimedCards.addOne(player.id, ArrayDeque())
-      clears.addOne(player.id, 0)
-      player
-    }.toSeq
-  private val numPlayers = players.size
 
   //Start of game
   private var _gameStarted: Boolean = false
@@ -67,6 +52,24 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
   private var _resultReport: Option[String] = None
   def resultReport: Option[String] = _resultReport
   private def resultReport_=(resultReport: Option[String]): Unit = _resultReport = resultReport
+  
+  //Primary game state
+  private val deck: Deck = new Deck(scala.util.Random.shuffle(newDeck))
+  private val table: ArrayDeque[CardStack] = ArrayDeque()
+  private val hands: Map[UUID, ArrayDeque[Card]] = Map.empty
+  private val playersById: Map[UUID, Player] = Map.empty
+  private val players: scala.collection.immutable.Seq[Player] =
+    scala.util.Random.shuffle(controllers).map{c =>
+      val hand: ArrayDeque[Card] = ArrayDeque()
+      val player: Player = new Player(c, hand.view, table.view, deckSize, currentPlayerId, currentPlayerName, generatePlayerActions(c.id))
+      hands.addOne(player.id, hand)
+      playersById.addOne(player.id, player)
+      claimedCards.addOne(player.id, ArrayDeque())
+      clears.addOne(player.id, 0)
+      player
+    }.toSeq
+  private val numPlayers = players.size
+  
 
   /** The number of [[kasino.cards.Card]]s remaining in the deck. */
   def deckSize : Int = deck.size
@@ -348,7 +351,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
             else if table(tablePosMax).cards.size == 1 && table(tablePosMax).ownerId == Some(playerId) then
               Try((table(tablePosMin) % table(tablePosMax)) (res, Some(playersById(playerId))))
             // both CardStacks are pre-existing on the table
-            else 
+            else
               var biResult = Try((table(tablePosMin) % table(tablePosMax)) (res, Some(playersById(playerId))))
               if biResult.isFailure then
                 biResult = Try((table(tablePosMax) % table(tablePosMin)) (res, Some(playersById(playerId))))
