@@ -31,7 +31,7 @@ class ConsoleController extends Controller {
   override def updateGameState(handView: SeqView[Card], tableView: SeqView[CardStack], deckSize: Int, currentPlayerId: UUID, currentPlayerName: String): Unit = {
     def pluralS(value: Int): String = if value != 1 then "s" else ""
     
-    val state = StringBuilder(s"There are ${deckSize} card${pluralS(deckSize)} left in the deck.\n\n")
+    val state = StringBuilder(s"There ${if deckSize == 1 then "is" else "are"} ${deckSize} card${pluralS(deckSize)} left in the deck.\n\n")
     state ++= "Stacks of kasino.cards on the table\n"
     for (stack, i) <- tableView.zipWithIndex do
       state ++= s"$i -- ${stack.toString.drop(12).dropRight(1)}\n"
