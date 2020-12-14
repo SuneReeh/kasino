@@ -115,6 +115,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
     table.appendAll(tableBackup)
     for card <- usedCard do
       hands(currentPlayerId).append(card)
+    usedCard = None
     lastToClaim = lastToClaimBackup
     cardsToClaim.clear()
   }
