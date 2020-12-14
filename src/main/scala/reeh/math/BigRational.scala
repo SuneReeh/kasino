@@ -137,7 +137,8 @@ class BigRational private(val numerator: BigInt, val denominator: BigInt) extend
       throw new ArithmeticException
   }
   
-  override def toString: String = s"$numerator/$denominator"
+  override def toString: String = 
+    if isWhole then s"$numerator" else s"$numerator/$denominator"
 
 }
 
