@@ -165,10 +165,10 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
       for i <- 1 to 4 do
         if deckSize >= numPlayers then
           for player <- players do
-            hands(player.id).append(deck.removeHead())
+            hands(player.id).append(deck.draw())
       if deckSize < numPlayers * 2 && numPlayers <= deckSize then
         for player <- players do
-          hands(player.id).append(deck.removeHead())
+          hands(player.id).append(deck.draw())
   }
 
   def endGame(): Unit = {
