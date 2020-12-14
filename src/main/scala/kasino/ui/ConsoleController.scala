@@ -56,7 +56,7 @@ class ConsoleController extends Controller {
     
     clearConsole()
     println(latestGameState)
-    val input = StdIn.readLine("add/a, mod/m, combine/c, take/t, play/p, five_of_spades/fos, reset/r, end/e > ").toLowerCase()
+    val input = StdIn.readLine("add/a, mod/m, combine/c, take/t, play/p, five_of_spades/fos, reset/r, end/e > ").strip().toLowerCase()
     val tokens = input.split(" ")
     
     if tokens.isEmpty then {
