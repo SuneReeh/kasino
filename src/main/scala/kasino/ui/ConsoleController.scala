@@ -46,6 +46,7 @@ class ConsoleController extends Controller {
   }
 
   override def getReady(): Boolean = {
+    clearConsole()
     val input = StdIn.readLine(s"${name}, it is your turn. Are you ready? ").toLowerCase().strip()
     Seq("", "y", "yes").contains(input)
   }
@@ -234,5 +235,8 @@ class ConsoleController extends Controller {
     StdIn.readLine()
   }
   
-  private def clearConsole(): Unit = print("\u001b[2J")
+  private def clearConsole(): Unit = {
+    //print("\u001b[2J")
+    kasino.Main.clearConsole()
+  }
 }
