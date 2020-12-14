@@ -50,8 +50,8 @@ class Player (private val controller: Controller,
         case End => end()
       }
       attempt match {
-        case Failure(exception: KasinoException) => controller.reportFailure(Failure(exception))
-        case Failure(otherException) => otherException.printStackTrace()
+        case Failure(exception: Exception) => controller.reportFailure(Failure(exception))
+        case Failure(otherError) => otherError.printStackTrace()
         case _ => ()
       }
       !(action == End && attempt.isSuccess)

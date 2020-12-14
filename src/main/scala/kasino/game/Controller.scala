@@ -20,5 +20,5 @@ trait Controller {
   
   def getAction(): Player.Action 
   
-  def reportFailure(failed: Failure[KasinoException]): Unit
+  def reportFailure(failed: Failure[Exception]): Unit
 }

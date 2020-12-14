@@ -1,7 +1,7 @@
 package kasino.game
 
 import kasino.cards.Card
-import kasino.exceptions.{AttemptToClearEmptyTableException, IllegalClaimException, MultipleCardsPlayedException, MultipleStacksOwnedException, NoCardsPlayedException, TurnOrderException, UnableToClaimException}
+import kasino.exceptions.{AttemptToClearEmptyTableException, IllegalClaimException, KasinoException, MultipleCardsPlayedException, MultipleStacksOwnedException, NoCardsPlayedException, TurnOrderException, UnableToClaimException}
 import kasino.game.Game.{Action, ActionProvider, CardPosition}
 import kasino.game.Game.CardPosition._
 import reeh.math.BigRational
@@ -340,11 +340,22 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
         }
 
         def tableAndTable (tablePosMin: Int, tablePosMax: Int): Try[Unit] = {
-          var result = Try((table(tablePosMin) % table(tablePosMax)) (res, Some(playersById(playerId))))
-          if result.isFailure then 
-            result = Try((table(tablePosMax) % table(tablePosMin)) (res, Some(playersById(playerId))))
-            if result.isFailure then
-              return Failure(result.failed.get)
+          var result = {
+            // table(tablePosMin) comes directly from the player hand this turn
+            if table(tablePosMin).cards.size == 1 && table(tablePosMin).ownerId == Some(playerId) then
+              Try((table(tablePosMax) % table(tablePosMin)) (res, Some(playersById(playerId))))
+            // table(tablePosMax) comes directly from the player hand this turn
+            else if table(tablePosMax).cards.size == 1 && table(tablePosMax).ownerId == Some(playerId) then
+              Try((table(tablePosMin) % table(tablePosMax)) (res, Some(playersById(playerId))))
+            // both CardStacks are pre-existing on the table
+            else 
+              var biResult = Try((table(tablePosMin) % table(tablePosMax)) (res, Some(playersById(playerId))))
+              if biResult.isFailure then
+                biResult = Try((table(tablePosMax) % table(tablePosMin)) (res, Some(playersById(playerId))))
+              biResult
+          }
+          if result.isFailure then
+            return Failure(result.failed.get)
           table.update(tablePosMin, result.get)
           table.remove(tablePosMax)
           checkFor42(Table(tablePosMin))
