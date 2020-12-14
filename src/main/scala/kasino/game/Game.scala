@@ -94,8 +94,8 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
     lastToClaimBackup = None
     cardsToClaim.clear()
     tableBackup = table.clone()
+    postGameState()
     gameStarted = true
-    players(currentPlayerPos).takeTurn()
     return Success(())
   }
 
