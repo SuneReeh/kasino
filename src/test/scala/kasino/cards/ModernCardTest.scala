@@ -44,6 +44,7 @@ class ModernCardTest extends UnitTestSpec  {
     (Spades, Zero)
   ) ++ (for (rank <- Rank.values if rank.ordinal > 0) yield (Joker, rank))
   
+  /*
   "A non-joker" should "have rank greater than Zero" in {
     forAll (nonJokers) {(card: ModernCard) =>
       card.rank.ordinal should be > 0
@@ -55,4 +56,5 @@ class ModernCardTest extends UnitTestSpec  {
       card.rank should equal (Zero)
     }
   }
+   */
 }

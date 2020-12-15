@@ -12,6 +12,6 @@ lazy val root = project
 
 mainClass in assembly := Some("kasino.Main")
 
-//libraryDependencies += ("org.scalatest" %% "scalatest" % "3.2.3" % "test")
-//libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.3"
-//libraryDependencies += "org.scalamock" %% "scalamock" % "5.0.0" % "Test"
+libraryDependencies += ("org.scalatest" %% "scalatest" % "3.2.3" % "test").withDottyCompat(scalaVersion.value)
+libraryDependencies += ("org.scalactic" %% "scalactic" % "3.2.3").withDottyCompat(scalaVersion.value)
+libraryDependencies += "org.scalamock" %% "scalamock" % "5.1.0" % "Test"
