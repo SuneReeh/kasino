@@ -100,8 +100,8 @@ case class TarotCard(val suit: TarotCard.Suit, val rank: TarotCard.Rank, val isA
       case (Coins, Ace) => Some("Dinaren")
       case (Cups, Ace) => Some("Gralen")
       case (Swords, Ace) => Some("Flammesværdet")
-      case (Joker, Zero) => Some("Matematikeren -- Han kan dividere med nul og har et stort bat.") // Usikker, blandet sammen med "matemagikeren"
-      case (Joker, Ace) => Some("Magikeren")
+      case (Joker, Zero) => Some("Naren")
+      case (Joker, Ace) => Some("Matemagikeren -- Han har et stort bat og kan dividere med nul, ligesom Vin Diesel.")
       case (Joker, Two) => Some("Ypperstepræstinden")
       case (Joker, Three) => Some("Kejserinden")
       case (Joker, Four) => Some("Palpatine")
