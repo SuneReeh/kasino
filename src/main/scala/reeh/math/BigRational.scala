@@ -145,6 +145,7 @@ class BigRational private(val numerator: BigInt, val denominator: BigInt) extend
 object BigRational {
   /** Construct a [[BigRational]] as a fraction of `numerator` by `denominator`. */
   def apply(numerator: BigInt, denominator: BigInt): BigRational = {
+    if denominator == 0 then throw new ArithmeticException("/ by zero")
     val divisor: BigInt = numerator.gcd(denominator)
     new BigRational((numerator / divisor) * denominator.sign, (denominator / divisor) * denominator.sign)
   }
