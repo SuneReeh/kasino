@@ -82,6 +82,49 @@ case class TarotCard(val suit: TarotCard.Suit, val rank: TarotCard.Rank, val isA
       }
       name + (if isAlsoZero then " (0)" else "")
   }
+
+  /**
+   * Optional flavor description of this [[TarotCard]].
+   */
+  override val description: Option[String] = {
+    import TarotCard.Suit._
+    import TarotCard.Rank._
+    
+    (suit, rank) match {
+      case (Swords, Two) => Some("Lillekasino")
+      case (Staves,Ten) => Some("Mikrokasino -- Dette er vaskebjørnen.")
+      case (Coins, Ten) => Some("Storekasino -- Dette er grævlingen.")
+      case (Cups, Ten) => Some("Megakasino -- Dette er mosilderen.")
+      case (Swords, Ten) => Some("Überkasino -- Dette er pandaen.")
+      case (Staves, Ace) => Some("Faklen")
+      case (Coins, Ace) => Some("Dinaren")
+      case (Cups, Ace) => Some("Gralen")
+      case (Swords, Ace) => Some("Flammesværdet")
+      case (Joker, Zero) => Some("Matematikeren -- Han kan dividere med nul og har et stort bat.") // Usikker, blandet sammen med "matemagikeren"
+      case (Joker, Ace) => Some("Magikeren")
+      case (Joker, Two) => Some("Ypperstepræstinden")
+      case (Joker, Three) => Some("Kejserinden")
+      case (Joker, Four) => Some("Palpatine")
+      case (Joker, Five) => Some("Paven -- Han ligner bare meget kejseren.")
+      case (Joker, Six) => Some("Seks er syndigt og er derfor udeladt.")
+      case (Joker, Seven) => Some("Karioten -- Eu-, Pro-, Is- eller Si-.")
+      case (Joker, Eight) => Some("Kraften")
+      case (Joker, Nine) => Some("Hr. Mitten er eneboer, han spiser også træ.")
+      case (Joker, Ten) => Some("Drejehjulet -- Farven er blå.")
+      case (Joker, Page) => Some("Retfærdighed")
+      case (Joker, Knight) => Some("Den hængte")
+      case (Joker, Queen) => Some("Døden -- Han er ikke ond, bare forfærdeligt god til sit job.")
+      case (Joker, King) => Some("Mådehold -- Det eneste der står mellem Camre og døden.")
+      case (Joker, Fifteen) => Some("Camre")
+      case (Joker, Sixteen) => Some("Tårnet") // -- Det kan man rokere med.
+      case (Joker, Seventeen) => Some("Stjernen -- Den er meget langt væk, men er alligevel mellem månen og tårnet.")
+      case (Joker, Eighteen) => Some("Månen -- En måne tar' den tid en måne skal ta', undtagen i februar hvor den mangler et par da'.")
+      case (Joker, Nineteen) => Some("Solen")
+      case (Joker, Twenty) => Some("Dommen")
+      case (Joker, TwentyOne) => Some("Universet")
+      case (_,_) => None
+    }
+  }
 }
 
 /**
