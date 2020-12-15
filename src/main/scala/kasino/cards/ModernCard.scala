@@ -50,6 +50,27 @@ case class ModernCard (val suit: ModernCard.Suit, val rank: ModernCard.Rank) ext
    * The everyday name of this [[ModernCard]].
    */
   override val toString: String = if suit == ModernCard.Suit.Joker then "Joker" else s"$rank of $suit"
+
+  /**
+   * Optional flavor description of this [[ModernCard]].
+   */
+  override val description: Option[String] = {
+    import ModernCard.Suit._
+    import ModernCard.Rank._
+
+    (suit, rank) match {
+      case (Spades, Two) => Some("Lillekasino")
+      case (Clubs,Ten) => Some("Mikrokasino -- Dette er vaskebjørnen.")
+      case (Diamonds, Ten) => Some("Storekasino -- Dette er grævlingen.")
+      case (Hearts, Ten) => Some("Megakasino -- Dette er mosilderen.")
+      case (Spades, Ten) => Some("Überkasino -- Dette er pandaen.")
+      case (Clubs, Ace) => Some("Faklen")
+      case (Diamonds, Ace) => Some("Dinaren")
+      case (Hearts, Ace) => Some("Gralen")
+      case (Spades, Ace) => Some("Flammesværdet")
+      case (_,_) => None
+    }
+  }
 }
 
 /**
