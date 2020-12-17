@@ -12,6 +12,8 @@ lazy val root = project
 
 mainClass in assembly := Some("kasino.Main")
 
+libraryDependencies += ("com.typesafe.akka" %% "akka-actor-typed" % "2.6.10").withDottyCompat(scalaVersion.value)
+
 libraryDependencies += ("org.scalatest" %% "scalatest" % "3.2.3" % "test").withDottyCompat(scalaVersion.value)
 libraryDependencies += ("org.scalactic" %% "scalactic" % "3.2.3").withDottyCompat(scalaVersion.value)
 libraryDependencies += "org.scalamock" %% "scalamock" % "5.1.0" % "Test"
