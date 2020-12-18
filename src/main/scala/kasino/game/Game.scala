@@ -10,6 +10,30 @@ import java.util.UUID
 import scala.collection.mutable.{ArrayDeque, Map, Queue}
 import scala.util.{Failure, Success, Try}
 
+object Game {
+  enum CardPosition {
+    case Table(i: Int)
+    case Hand(i: Int)
+  }
+
+  sealed trait Action {
+    def apply(): Try[Unit]
+  }
+
+
+  sealed trait ActionProvider {
+    def play(posHand : Hand): Action
+    def add(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Action
+    def mod(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Action
+    def combine(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Action
+    def take(posTable: Table, posHand: Hand): Action
+    def fiveOfSpades(posHand : Hand): Action
+    def reset: Action
+    def end: Action
+  }
+}
+
+
 /**
  * A concrete game of "Nørdekasino".
  * 
@@ -501,26 +525,4 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card]) {
   }
 }
 
-object Game {
-  enum CardPosition {
-    case Table(i: Int)
-    case Hand(i: Int) 
-  } 
-  
-  sealed trait Action {
-    def apply(): Try[Unit]
-  }
-  
-  
-  sealed trait ActionProvider {
-    def play(posHand : Hand): Action
-    def add(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Action
-    def mod(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Action
-    def combine(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Action
-    def take(posTable: Table, posHand: Hand): Action
-    def fiveOfSpades(posHand : Hand): Action
-    def reset: Action
-    def end: Action
-  }
-}
 

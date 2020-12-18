@@ -9,6 +9,21 @@ import java.util.UUID
 import scala.collection.SeqView
 import scala.util.{Failure, Success, Try}
 
+object Controller {
+  enum Message extends kasino.akka.Message() {
+    case UpdateGameState(override val messageId: UUID)
+    case StartTurn(override val messageId: UUID)
+    case ContinueTurn(override val messageId: UUID)
+    case EndTurn(override val messageId: UUID)
+    case ReportFailure(override val messageId: UUID)
+
+    case Recieved(receipt: Player.Receipt)
+  }
+
+  case class Receipt(override val messageId: UUID) extends MessageReceipt(messageId)
+}
+
+
 abstract class Controller(context: ActorContext[Controller.Message]) extends AbstractBehavior[Controller.Message](context) with MessageHandling[Controller.Message](context) {
   val id : UUID = UUID.randomUUID()
 
@@ -25,16 +40,3 @@ abstract class Controller(context: ActorContext[Controller.Message]) extends Abs
   def reportFailure(failed: Failure[Exception]): Unit
 }
 
-object Controller {
-  enum Message extends kasino.akka.Message() {
-    case UpdateGameState(override val messageId: UUID)
-    case StartTurn(override val messageId: UUID)
-    case ContinueTurn(override val messageId: UUID)
-    case EndTurn(override val messageId: UUID)
-    case ReportFailure(override val messageId: UUID)
-    
-    case Recieved(receipt: Player.Receipt)
-  }
-  
-  case class Receipt(override val messageId: UUID) extends MessageReceipt(messageId)
-}

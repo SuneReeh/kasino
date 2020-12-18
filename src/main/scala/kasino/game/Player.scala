@@ -10,6 +10,32 @@ import java.util.UUID
 import scala.collection.SeqView
 import scala.util.{Failure, Success, Try}
 
+
+object Player {
+  enum Action {
+    case Play(posHand: Hand)
+    case Add(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None)
+    case Mod(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None)
+    case Combine(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None)
+    case Take(posTable: Table, posHand: Hand)
+    case FiveOfSpades(posHand : Hand)
+    case Reset
+    case End
+  }
+
+  enum Message extends kasino.akka.Message() {
+    case UpdateGameState(override val messageId: UUID)
+    case TakeTurn(override val messageId: UUID)
+    case Act(override val messageId: UUID)
+    case ReportFailure(override val messageId: UUID)
+
+    case Recieved(receipt: Controller.Receipt)
+  }
+
+  case class Receipt(override val messageId: UUID) extends MessageReceipt(messageId)
+}
+
+
 class Player (private val controller: Controller, 
               private val handView: SeqView[Card], 
               private val tableView: SeqView[CardStack],
@@ -60,26 +86,4 @@ class Player (private val controller: Controller,
   }
 }
 
-object Player {
-  enum Action {
-    case Play(posHand: Hand)
-    case Add(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None)
-    case Mod(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None)
-    case Combine(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None)
-    case Take(posTable: Table, posHand: Hand)
-    case FiveOfSpades(posHand : Hand)
-    case Reset
-    case End
-  }
 
-  enum Message extends kasino.akka.Message() {
-    case UpdateGameState(override val messageId: UUID)
-    case TakeTurn(override val messageId: UUID)
-    case Act(override val messageId: UUID)
-    case ReportFailure(override val messageId: UUID)
-
-    case Recieved(receipt: Controller.Receipt)
-  }
-
-  case class Receipt(override val messageId: UUID) extends MessageReceipt(messageId)
-}
