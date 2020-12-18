@@ -59,7 +59,7 @@ object Main {
     } 
     val controllers: ArrayDeque[Controller] = ArrayDeque()
     for i <- 1 to numPlayers do {
-      controllers.append(new ConsoleController)
+      controllers.append(new ConsoleController(???))
     }
     val game: Game = new Game(controllers, deck)
     game.run()

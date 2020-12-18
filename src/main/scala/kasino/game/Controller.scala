@@ -1,13 +1,15 @@
 package kasino.game
 
+import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext}
+import kasino.akka.{MessageHandling, MessageReceipt}
 import kasino.cards.Card
 import kasino.exceptions.KasinoException
 
 import java.util.UUID
 import scala.collection.SeqView
-import scala.util.{Try, Success, Failure}
+import scala.util.{Failure, Success, Try}
 
-trait Controller {
+abstract class Controller(context: ActorContext[Controller.Message]) extends AbstractBehavior[Controller.Message](context) with MessageHandling[Controller.Message](context) {
   val id : UUID = UUID.randomUUID()
 
   private var _name : String = ""
@@ -21,4 +23,18 @@ trait Controller {
   def getAction(): Player.Action 
   
   def reportFailure(failed: Failure[Exception]): Unit
+}
+
+object Controller {
+  enum Message extends kasino.akka.Message() {
+    case UpdateGameState(override val messageId: UUID)
+    case StartTurn(override val messageId: UUID)
+    case ContinueTurn(override val messageId: UUID)
+    case EndTurn(override val messageId: UUID)
+    case ReportFailure(override val messageId: UUID)
+    
+    case Recieved(receipt: Player.Receipt)
+  }
+  
+  case class Receipt(override val messageId: UUID) extends MessageReceipt(messageId)
 }
