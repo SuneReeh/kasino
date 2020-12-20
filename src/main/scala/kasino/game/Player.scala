@@ -1,6 +1,5 @@
 package kasino.game
 
-import kasino.akka.MessageReceipt
 import kasino.cards.Card
 import kasino.exceptions.KasinoException
 import kasino.game.Game.{Action, ActionProvider, CardPosition}
@@ -24,15 +23,11 @@ object Player {
   }
 
   enum Message extends kasino.akka.Message() {
-    case UpdateGameState(override val messageId: UUID)
-    case TakeTurn(override val messageId: UUID)
-    case Act(override val messageId: UUID)
-    case ReportFailure(override val messageId: UUID)
-
-    case Recieved(receipt: Controller.Receipt)
+    case UpdateGameState()
+    case TakeTurn()
+    case Act()
+    case ReportFailure()
   }
-
-  case class Receipt(override val messageId: UUID) extends MessageReceipt(messageId)
 }
 
 

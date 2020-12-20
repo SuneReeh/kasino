@@ -2,6 +2,7 @@ package kasino.ui
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.ActorContext
+import kasino.akka.{Dispatch, KasinoActor}
 import kasino.cards.Card
 import kasino.exceptions.KasinoException
 import kasino.game.Game.CardPosition
@@ -14,7 +15,7 @@ import scala.collection.SeqView
 import scala.util.{Failure, Success, Try}
 import scala.io.StdIn
 
-class ConsoleController(context: ActorContext[Controller.Message]) extends Controller(context) {
+class ConsoleController(context: ActorContext[Dispatch[Controller.Message]]) extends Controller(context) {
   getName()
   
   def getName(): Unit = {
@@ -30,8 +31,8 @@ class ConsoleController(context: ActorContext[Controller.Message]) extends Contr
   
   private var latestGameState: String = ""
 
-  override def onMessage(msg: Controller.Message): Behavior[Controller.Message] = ???
-  
+  override def actOnMessage(message: Controller.Message): KasinoActor[Controller.Message] = ???
+
   override def updateGameState(handView: SeqView[Card], tableView: SeqView[CardStack], deckSize: Int, currentPlayerId: UUID, currentPlayerName: String): Unit = {
     def pluralS(value: Int): String = if value != 1 then "s" else ""
     
