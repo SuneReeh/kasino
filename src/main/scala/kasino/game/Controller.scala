@@ -1,5 +1,6 @@
 package kasino.game
 
+import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext}
 import kasino.akka.{Dispatch, KasinoActor}
 import kasino.cards.Card
@@ -11,9 +12,10 @@ import scala.util.{Failure, Success, Try}
 
 object Controller {
   enum Message extends kasino.akka.Message() {
+    case AttachPlayer(player: ActorRef[Dispatch[Player.Message]])
     case UpdateGameState(handView: SeqView[Card], tableView: SeqView[CardStack], deckSize: Int, currentPlayerId: UUID, currentPlayerName: String)
     case StartTurn()
-    case ContinueTurn()
+    case ContinueTurn(previousActionResult: Try[Unit])
     case EndTurn()
     case ReportFailure(failed: Failure[Exception])
   }

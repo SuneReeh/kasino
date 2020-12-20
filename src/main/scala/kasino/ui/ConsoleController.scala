@@ -1,7 +1,7 @@
 package kasino.ui
 
-import akka.actor.typed.Behavior
-import akka.actor.typed.scaladsl.ActorContext
+import akka.actor.typed.{ActorRef, Behavior}
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import kasino.akka.{Dispatch, KasinoActor}
 import kasino.cards.Card
 import kasino.exceptions.KasinoException
@@ -29,9 +29,30 @@ class ConsoleController(context: ActorContext[Dispatch[Controller.Message]]) ext
     }) do ()
   }
   
+  private var player: ActorRef[Dispatch[Player.Message]] = context.system.ignoreRef
   private var latestGameState: String = ""
+  //private var hasTurn: Boolean = false
 
-  override def actOnMessage(message: Controller.Message): KasinoActor[Controller.Message] = ???
+  override def actOnMessage(message: Controller.Message): KasinoActor[Controller.Message] = { 
+    import Controller.Message._
+    message match {
+      case AttachPlayer(player: ActorRef[Dispatch[Player.Message]]) => 
+        this.player = player
+        sendMessage(player, Player.Message.NameAndId(name, id))
+      case UpdateGameState(handView: SeqView[Card], tableView: SeqView[CardStack], deckSize: Int, currentPlayerId: UUID, currentPlayerName: String) => updateGameState(handView, tableView,deckSize,currentPlayerId,currentPlayerName)
+      case StartTurn() =>
+        //hasTurn = true
+        while !getReady() do ()
+        sendMessage(player, Player.Message.Act(getAction()))
+      case ContinueTurn(previousActionResult: Try[Unit]) => 
+        if previousActionResult.isFailure then
+          reportFailure(Failure(previousActionResult.failed.get))
+        sendMessage(player, Player.Message.Act(getAction()))
+      case EndTurn() => ()//hasTurn = false
+      case ReportFailure(failed: Failure[Exception]) => reportFailure(failed)
+    }
+    this
+  }
 
   override def updateGameState(handView: SeqView[Card], tableView: SeqView[CardStack], deckSize: Int, currentPlayerId: UUID, currentPlayerName: String): Unit = {
     def pluralS(value: Int): String = if value != 1 then "s" else ""

@@ -23,9 +23,10 @@ object Player {
   }
 
   enum Message extends kasino.akka.Message() {
+    case NameAndId(name: String, id: UUID)
     case UpdateGameState()
     case TakeTurn()
-    case Act()
+    case Act(action: Action)
     case ReportFailure()
   }
 }
