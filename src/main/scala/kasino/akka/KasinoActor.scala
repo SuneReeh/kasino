@@ -21,10 +21,10 @@ abstract class KasinoActor[Recieves <: Message](context: ActorContext[Dispatch[R
 
   def onMessage(letter: Dispatch[Recieves]): KasinoActor[Recieves] = letter match {
     case Letter(message: Recieves, dispatcher: ActorRef[Try[Done]], receiptTo: ActorRef[StatusReply[Done]]) =>
+      receiptTo ! StatusReply.Ack
       if messagesRecieved.contains(message.messageId) then
         this
       else
-        receiptTo ! StatusReply.Ack
         messagesRecieved += message.messageId
         context.watchWith(dispatcher, DispatchComplete(message.messageId))
         actOnMessage(message)

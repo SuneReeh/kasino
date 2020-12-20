@@ -21,8 +21,8 @@ class Dispatcher[T <: Message]( val recipient : ActorRef[Letter[T]], val message
   send()
 
   override def onMessage(message: Try[Done]): Behavior[Try[Done]] = message match {
-    case Success => Behaviors.stopped
-    case Failure(TimeoutException) => send(); this
+    case Success(_) => Behaviors.stopped
+    case Failure(_: TimeoutException) => send(); this
     case Failure(e: Throwable) => throw e
   }
 }
