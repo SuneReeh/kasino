@@ -15,8 +15,9 @@ object Controller {
     case AttachPlayer(player: ActorRef[Dispatch[Player.Message]])
     case UpdateGameState(handView: SeqView[Card], tableView: SeqView[CardStack], deckSize: Int, currentPlayerId: UUID, currentPlayerName: String)
     case StartTurn()
-    case ContinueTurn(previousActionResult: Try[Unit])
-    case EndTurn()
+    //case ContinueTurn(previousActionResult: Try[Unit])
+    case ActionResult(action: Player.Action, result: Try[Unit])
+    //case EndTurn()
     case ReportFailure(failed: Failure[Exception])
   }
 }

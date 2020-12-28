@@ -31,7 +31,7 @@ class ConsoleController(context: ActorContext[Dispatch[Controller.Message]]) ext
   
   private var player: ActorRef[Dispatch[Player.Message]] = context.system.ignoreRef
   private var latestGameState: String = ""
-  //private var hasTurn: Boolean = false
+  private var hasTurn: Boolean = false
 
   override def actOnMessage(message: Controller.Message): KasinoActor[Controller.Message] = { 
     import Controller.Message._
@@ -41,14 +41,16 @@ class ConsoleController(context: ActorContext[Dispatch[Controller.Message]]) ext
         sendMessage(player, Player.Message.NameAndId(name, id))
       case UpdateGameState(handView: SeqView[Card], tableView: SeqView[CardStack], deckSize: Int, currentPlayerId: UUID, currentPlayerName: String) => updateGameState(handView, tableView,deckSize,currentPlayerId,currentPlayerName)
       case StartTurn() =>
-        //hasTurn = true
+        hasTurn = true
         while !getReady() do ()
         sendMessage(player, Player.Message.Act(getAction()))
-      case ContinueTurn(previousActionResult: Try[Unit]) => 
-        if previousActionResult.isFailure then
-          reportFailure(Failure(previousActionResult.failed.get))
-        sendMessage(player, Player.Message.Act(getAction()))
-      case EndTurn() => ()//hasTurn = false
+      case ActionResult(action: Player.Action, result: Try[Unit]) => 
+        if result.isFailure then
+          reportFailure(Failure(result.failed.get))
+        else if action == Player.Action.End then
+          hasTurn = false
+        else sendMessage(player, Player.Message.Act(getAction()))
+      //case EndTurn() => ()//hasTurn = false
       case ReportFailure(failed: Failure[Exception]) => reportFailure(failed)
     }
     this
@@ -79,6 +81,8 @@ class ConsoleController(context: ActorContext[Dispatch[Controller.Message]]) ext
 
   // @tailrec
   override final def getAction(): Player.Action = {
+    assert(hasTurn, "Attempted to get action out of turn.")
+    
     import Player.Action._
     
     clearConsole()
