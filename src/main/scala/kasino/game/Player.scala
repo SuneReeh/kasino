@@ -1,8 +1,10 @@
 package kasino.game
 
+import akka.actor.typed.scaladsl.ActorContext
+import kasino.akka.{Dispatch, KasinoActor}
 import kasino.cards.Card
 import kasino.exceptions.KasinoException
-import kasino.game.Game.{Action, ActionProvider, CardPosition}
+import kasino.game.Game.{ActionProvider, CardPosition}
 import kasino.game.Game.CardPosition._
 
 import java.util.UUID
@@ -38,7 +40,8 @@ class Player (private val controller: Controller,
               deckSize: =>Int,
               currentPlayerId: =>UUID,
               currentPlayerName: =>String,
-              actions: Game.ActionProvider) {
+              actions: Game.ActionProvider,
+              context: ActorContext[Dispatch[Player.Message]]) extends KasinoActor[Player.Message](context) {
   def name: String = controller.name
 
   val id : UUID = controller.id
@@ -51,6 +54,11 @@ class Player (private val controller: Controller,
   private def fiveOfSpades(posHand : Hand): Try[Unit] = actions.fiveOfSpades(posHand)()
   private def reset(): Try[Unit] = actions.reset()
   private def end(): Try[Unit] = actions.end()
+
+  override def actOnMessage(message: Player.Message): KasinoActor[Player.Message] = {
+    ???
+    this
+  }
   
   def updateGameState(): Unit = {
     controller.updateGameState(handView, tableView, deckSize, currentPlayerId, currentPlayerName)
