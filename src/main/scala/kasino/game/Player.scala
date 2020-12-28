@@ -1,6 +1,7 @@
 package kasino.game
 
-import akka.actor.typed.scaladsl.ActorContext
+import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import kasino.akka.{Dispatch, KasinoActor}
 import kasino.cards.Card
 import kasino.exceptions.KasinoException
@@ -13,6 +14,9 @@ import scala.util.{Failure, Success, Try}
 
 
 object Player {
+  def apply(controller: Controller, handView: SeqView[Card], tableView: SeqView[CardStack], deckSize: =>Int, currentPlayerId: =>UUID, currentPlayerName: =>String, actions: Game.ActionProvider): Behavior[Dispatch[Message]] = 
+    Behaviors.setup(context => new Player(controller, handView, tableView, deckSize, currentPlayerId, currentPlayerName, actions, context))
+  
   enum Action {
     case Play(posHand: Hand)
     case Add(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None)

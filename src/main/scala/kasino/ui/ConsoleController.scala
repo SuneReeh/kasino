@@ -15,6 +15,10 @@ import scala.collection.SeqView
 import scala.util.{Failure, Success, Try}
 import scala.io.StdIn
 
+object ConsoleController {
+  def apply(): Behavior[Dispatch[Controller.Message]] = Behaviors.setup(context => new ConsoleController(context))
+}
+
 class ConsoleController(context: ActorContext[Dispatch[Controller.Message]]) extends Controller(context) {
   getName()
   

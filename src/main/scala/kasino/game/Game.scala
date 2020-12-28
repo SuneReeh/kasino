@@ -1,6 +1,7 @@
 package kasino.game
 
-import akka.actor.typed.scaladsl.ActorContext
+import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import kasino.akka.{Dispatch, KasinoActor}
 import kasino.cards.Card
 import kasino.exceptions.{AttemptToClearEmptyTableException, IllegalClaimException, KasinoException, MultipleCardsPlayedException, MultipleStacksOwnedException, NoCardsPlayedException, TurnOrderException, UnableToClaimException}
@@ -13,6 +14,8 @@ import scala.collection.mutable.{ArrayDeque, Map, Queue}
 import scala.util.{Failure, Success, Try}
 
 object Game {
+  def apply(controllers: Iterable[Controller], newDeck: Iterable[Card]): Behavior[Dispatch[Message]] = Behaviors.setup(context => new Game(controllers, newDeck, context))
+  
   enum Message extends kasino.akka.Message() {
     case Run()
     case Act(action: Action)
