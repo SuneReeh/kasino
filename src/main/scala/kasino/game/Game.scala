@@ -20,6 +20,7 @@ object Game {
     case Run()
     case Act(action: Action)
     case GetGameFinished(replyTo: ActorRef[Boolean])
+    case GetResultReport(replyTo: ActorRef[Option[String]])
   }
   
   enum CardPosition {
@@ -136,6 +137,7 @@ class Game (controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDe
       case Run() => run()
       case GetGameFinished(replyTo: ActorRef[Boolean]) => replyTo ! gameFinished
       case Act(action: Game.Action) => action()
+      case GetResultReport(replyTo: ActorRef[Option[String]]) => replyTo ! resultReport
     }
     this
   }
