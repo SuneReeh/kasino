@@ -1,5 +1,7 @@
 package kasino.game
 
+import akka.actor.typed.ActorRef
+import kasino.akka.Dispatch
 import kasino.cards.Card
 import kasino.exceptions.ArithmeticException.OpType
 import kasino.exceptions.{AmbiguousResultException, InvalidResultException, LockedValueException}
@@ -85,7 +87,7 @@ class CardStack private(val values: Set[Int],
    * @throws kasino.exceptions.InvalidResultException if `result` is not a possible value for the sum of the two [[CardStack]]s.
    */
   @targetName("add")
-  infix def +(other: CardStack)(result: Option[Int] = None, owner: Option[Player] = None): CardStack = {
+  infix def +(other: CardStack)(result: Option[Int] = None, owner: Option[ActorRef[Dispatch[Player.Message]]] = None): CardStack = {
     if this.lockedValue || other.lockedValue then
       throw new LockedValueException(OpType.Sum, this, other)
     if result.isEmpty then
@@ -135,7 +137,7 @@ class CardStack private(val values: Set[Int],
    * @throws kasino.exceptions.InvalidResultException if `result` is not a possible value for the sum of the two [[CardStack]]s. Alternatively, if `other` has bigger value than `this` so that the remainder is just trivially the same as `this.value`, or if `other` has value 0 so that the remainder is undefined.
    */
   @targetName("remainder")
-  infix def %(other: CardStack)(result: Option[Int] = None, owner: Option[Player] = None): CardStack = {
+  infix def %(other: CardStack)(result: Option[Int] = None, owner: Option[ActorRef[Dispatch[Player.Message]]] = None): CardStack = {
     if this.lockedValue || other.lockedValue then
       throw new LockedValueException(OpType.Mod, this, other)
     if result.isEmpty then
@@ -187,7 +189,7 @@ class CardStack private(val values: Set[Int],
    * @throws kasino.exceptions.InvalidResultException if 'other' and 'this' have different values, or if `result` is not a common value for both.
    */
   @targetName("combine")
-  infix def &(other: CardStack)(result: Option[Int] = None, owner: Option[Player] = None): CardStack = {
+  infix def &(other: CardStack)(result: Option[Int] = None, owner: Option[ActorRef[Dispatch[Player.Message]]] = None): CardStack = {
     if result.isEmpty then
       if values.size != 1 || other.values.size != 1 then
         throw new AmbiguousResultException(OpType.Combine, this, other)
@@ -234,7 +236,7 @@ object CardStack {
    * @param owner optional [[Player]] constructing this [[CardStack]].
    * @return a new [[CardStack]] with the same values and points as the provided card, containing the card, and (optionally) with the specified player providing ownerId and ownerName.
    */
-  def apply(card: Card, owner: Player): CardStack = {
+  def apply(card: Card, owner: ActorRef[Dispatch[Player.Message]]): CardStack = {
     new CardStack(card.values, card.points, Seq(card), ownerNameInput = Some(owner.name), ownerIdInput = Some(owner.id))
   }
 }

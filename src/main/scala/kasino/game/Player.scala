@@ -1,6 +1,6 @@
 package kasino.game
 
-import akka.actor.typed.Behavior
+import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import kasino.akka.{Dispatch, KasinoActor}
 import kasino.cards.Card
@@ -14,7 +14,7 @@ import scala.util.{Failure, Success, Try}
 
 
 object Player {
-  def apply(controller: Controller, handView: SeqView[Card], tableView: SeqView[CardStack], deckSize: =>Int, currentPlayerId: =>UUID, currentPlayerName: =>String, actions: Game.ActionProvider): Behavior[Dispatch[Message]] = 
+  def apply(controller: ActorRef[Dispatch[Controller.Message]], handView: SeqView[Card], tableView: SeqView[CardStack], deckSize: =>Int, currentPlayerId: =>UUID, currentPlayerName: =>String, actions: Game.ActionProvider): Behavior[Dispatch[Message]] = 
     Behaviors.setup(context => new Player(controller, handView, tableView, deckSize, currentPlayerId, currentPlayerName, actions, context))
   
   enum Action {
@@ -29,7 +29,7 @@ object Player {
   }
 
   enum Message extends kasino.akka.Message() {
-    case NameAndId(name: String, id: UUID)
+    //case NameAndId(name: String, id: UUID)
     case UpdateGameState()
     case TakeTurn()
     case Act(action: Action)
@@ -38,7 +38,7 @@ object Player {
 }
 
 
-class Player (private val controller: Controller, 
+class Player (private val controller: ActorRef[Dispatch[Controller.Message]], 
               private val handView: SeqView[Card], 
               private val tableView: SeqView[CardStack],
               deckSize: =>Int,

@@ -1,6 +1,6 @@
 package kasino.game
 
-import akka.actor.typed.Behavior
+import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import kasino.akka.{Dispatch, KasinoActor}
 import kasino.cards.Card
@@ -14,7 +14,7 @@ import scala.collection.mutable.{ArrayDeque, Map, Queue}
 import scala.util.{Failure, Success, Try}
 
 object Game {
-  def apply(controllers: Iterable[Controller], newDeck: Iterable[Card]): Behavior[Dispatch[Message]] = Behaviors.setup(context => new Game(controllers, newDeck, context))
+  def apply(controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDeck: Iterable[Card]): Behavior[Dispatch[Message]] = Behaviors.setup(context => new Game(controllers, newDeck, context))
   
   enum Message extends kasino.akka.Message() {
     case Run()
@@ -65,7 +65,7 @@ object Game {
  * @param controllers controllers for the [[Player]]s in this game.
  * @param newDeck a deck of [[kasino.cards.Card]]s with which to play a game. Needs at least `4* controllers.size +2` cards.
  */
-class Game (controllers: Iterable[Controller], newDeck: Iterable[Card], context: ActorContext[Dispatch[Game.Message]]) extends KasinoActor[Game.Message](context) {
+class Game (controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDeck: Iterable[Card], context: ActorContext[Dispatch[Game.Message]]) extends KasinoActor[Game.Message](context) {
   require(newDeck.size >= 4 * controllers.size + 2, "The provided deck is too small for a game with " + controllers.size + " players.")
 
   private class Deck (deck: Iterable[Card]) extends Queue[Card](deck.size) {
@@ -106,11 +106,11 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card], context:
   private val deck: Deck = new Deck(scala.util.Random.shuffle(newDeck))
   private val table: ArrayDeque[CardStack] = ArrayDeque()
   private val hands: Map[UUID, ArrayDeque[Card]] = Map.empty
-  private val playersById: Map[UUID, Player] = Map.empty
-  private val players: scala.collection.immutable.Seq[Player] =
+  private val playersById: Map[UUID, ActorRef[Dispatch[Player.Message]]] = Map.empty
+  private val players: scala.collection.immutable.Seq[ActorRef[Dispatch[Player.Message]]] =
     scala.util.Random.shuffle(controllers).map{c =>
       val hand: ArrayDeque[Card] = ArrayDeque()
-      val player: Player = new Player(c, hand.view, table.view, deckSize, currentPlayerId, currentPlayerName, generatePlayerActions(c.id))
+      val player: ActorRef[Dispatch[Player.Message]] = new Player(c, hand.view, table.view, deckSize, currentPlayerId, currentPlayerName, generatePlayerActions(c.id))
       hands.addOne(player.id, hand)
       playersById.addOne(player.id, player)
       claimedCards.addOne(player.id, ArrayDeque())
@@ -289,7 +289,7 @@ class Game (controllers: Iterable[Controller], newDeck: Iterable[Card], context:
         if scores(player.id) == maxPoints then
           report ++= s"The winner is ${player.name} with ${maxPoints} point${pluralS(maxPoints)}!\n"
     else
-      val winners: ArrayDeque[Player] = ArrayDeque()
+      val winners: ArrayDeque[ActorRef[Dispatch[Player.Message]]] = ArrayDeque()
       for player <- players do
         if scores(player.id) == maxPoints then
           winners.append(player)
