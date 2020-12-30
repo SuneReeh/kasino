@@ -19,6 +19,7 @@ object Game {
   enum Message extends kasino.akka.Message() {
     case Run()
     case Act(action: Action)
+    case GetGameFinished(replyTo: ActorRef[Boolean])
   }
   
   enum CardPosition {
@@ -130,7 +131,12 @@ class Game (controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDe
   def currentPlayerName: String = players(currentPlayerPos).name
 
   override def actOnMessage(message: Game.Message): KasinoActor[Game.Message] = {
-    ???
+    import Game.Message._
+    message match {
+      case Run() => run()
+      case GetGameFinished(replyTo: ActorRef[Boolean]) => replyTo ! gameFinished
+      case Act(action: Game.Action) => action()
+    }
     this
   }
   

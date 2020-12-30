@@ -34,6 +34,6 @@ abstract class KasinoActor[Recieves <: Message](context: ActorContext[Dispatch[R
   }
 
   def sendMessage[Target <: Message](recipient: ActorRef[Letter[Target]], message: Target): Unit = {
-    dispatch(recipient, message)
+    dispatch(recipient, message)(context)
   }
 } 

@@ -40,9 +40,14 @@ object Main {
   }
 }
 
-class MainActor(context: ActorContext[Nothing]) extends AbstractBehavior[Nothing](context) {
-  override def onMessage(msg: Nothing): Behavior[Nothing] = this
+object MainActor {
+  enum Message {
+    case GameFinished
+  }
+}
 
+class MainActor(context: ActorContext[MainActor.Message]) extends AbstractBehavior[MainActor.Message](context) {
+  
   Main.clearConsole()
   println("Welcome to 'Noerdekasino'")
   val numPlayers: Int = {
@@ -69,21 +74,26 @@ class MainActor(context: ActorContext[Nothing]) extends AbstractBehavior[Nothing
   }
   val controllers: ArrayDeque[ActorRef[Dispatch[Controller.Message]]] = ArrayDeque()
   for i <- 1 to numPlayers do {
-    controllers.append(new ConsoleController(???))
+    controllers.append(context.spawn(ConsoleController(),"Controller-"+i))
   }
-  val game: ActorRef[Dispatch[Game.Message]] = new Game(controllers, deck)
-  game.run()
-
-  override def onSignal(signal: Signal): Behavior[Nothing] = {
-    signal match {
-      case Terminated(value: ActorRef[Dispatch[Game.Message]]) =>
-        assert(game.gameFinished)
+  val game: ActorRef[Dispatch[Game.Message]] = context.spawn(Game(controllers, deck),"Game")
+  akka.dispatch[Game.Message](game, Game.Message.Run())
+  
+  override def onMessage(msg: MainActor.Message): Behavior[MainActor.Message] = {
+    import MainActor.Message._
+    import akka.fetch
+    
+    msg match {
+      case GameFinished =>
+        import _root_.akka.actor.typed.scaladsl.AskPattern._
+        assert(fetch(game, Game.Message.GetGameFinished(_))(context))
         clearConsole()
         println(game.resultReport.getOrElse("Results missing!"))
         return Behaviors.stopped
     }
     this
   }
+
   
   
   
