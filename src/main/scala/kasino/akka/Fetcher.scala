@@ -14,7 +14,7 @@ object Fetcher {
 import Fetcher.Fetch
 
 @tailrec
-def fetch[Query <: Message, Result] (target: ActorRef[Dispatch[Query]], query: ActorRef[Result] => Query)(context: ActorContext[?]) : Result = {
+def fetch[Query <: Message, Result] (target: ActorRef[Dispatch[Query]], query: ActorRef[Result] => Query)(implicit context: ActorContext[?]) : Result = {
   import akka.actor.typed.scaladsl.AskPattern._
   import scala.concurrent.duration.DurationInt
   implicit val responseTimeout: akka.util.Timeout = 4.seconds

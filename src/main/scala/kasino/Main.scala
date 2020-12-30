@@ -83,12 +83,16 @@ class MainActor(context: ActorContext[MainActor.Message]) extends AbstractBehavi
     import MainActor.Message._
     import akka.fetch
     
+    implicit val context = this.context
+    
     msg match {
       case GameFinished =>
         import _root_.akka.actor.typed.scaladsl.AskPattern._
-        assert(fetch[Game.Message.GetGameFinished,Boolean](game, Game.Message.GetGameFinished(_))(context))
+        import kasino.akka.fetch
+        
+        assert(fetch[Game.Message.GetGameFinished,Boolean](game, Game.Message.GetGameFinished(_)))
         Main.clearConsole()
-        println(fetch[Game.Message.GetResultReport,Option[String]](game, Game.Message.GetResultReport(_))(context).getOrElse("Results missing!"))
+        println(fetch[Game.Message.GetResultReport,Option[String]](game, Game.Message.GetResultReport(_)).getOrElse("Results missing!"))
         return Behaviors.stopped
     }
     this
