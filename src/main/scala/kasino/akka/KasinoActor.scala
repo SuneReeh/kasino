@@ -10,7 +10,7 @@ import scala.util.Try
 
 import Dispatch._
 
-abstract class KasinoActor[Recieves <: Message](context: ActorContext[Dispatch[Recieves]]) extends AbstractBehavior[Dispatch[Recieves]](context) {
+abstract class KasinoActor[Recieves <: Message](implicit val context: ActorContext[Dispatch[Recieves]]) extends AbstractBehavior[Dispatch[Recieves]](context) {
   //val dispatchesRecieved: scala.collection.mutable.Set[ActorRef[?]] = scala.collection.mutable.Set()
   val messagesRecieved: scala.collection.mutable.Set[UUID] = scala.collection.mutable.Set()
   //val sentAwaitingReceipts: scala.collection.mutable.Map[UUID, Letter[? <: Message]] = scala.collection.mutable.Map()
@@ -34,6 +34,6 @@ abstract class KasinoActor[Recieves <: Message](context: ActorContext[Dispatch[R
   }
 
   def sendMessage[Target <: Message](recipient: ActorRef[Letter[Target]], message: Target): Unit = {
-    dispatch(recipient, message)(context)
+    dispatch(recipient, message)
   }
 } 

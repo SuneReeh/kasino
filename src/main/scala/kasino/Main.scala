@@ -36,7 +36,7 @@ object Main {
   }
 
   def runGame(): Unit = {
-    ActorSystem(Behaviors.setup(context => new MainActor(context)), "MainActor")
+    ActorSystem(Behaviors.setup(context => new MainActor()(context)), "MainActor")
   }
 }
 
@@ -46,7 +46,7 @@ object MainActor {
   }
 }
 
-class MainActor(context: ActorContext[MainActor.Message]) extends AbstractBehavior[MainActor.Message](context) {
+class MainActor(implicit context: ActorContext[MainActor.Message]) extends AbstractBehavior[MainActor.Message](context) {
   
   Main.clearConsole()
   println("Welcome to 'Noerdekasino'")
@@ -82,8 +82,6 @@ class MainActor(context: ActorContext[MainActor.Message]) extends AbstractBehavi
   override def onMessage(msg: MainActor.Message): Behavior[MainActor.Message] = {
     import MainActor.Message._
     import akka.fetch
-    
-    implicit val context = this.context
     
     msg match {
       case GameFinished =>

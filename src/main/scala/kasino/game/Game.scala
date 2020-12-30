@@ -67,7 +67,7 @@ object Game {
  * @param controllers controllers for the [[Player]]s in this game.
  * @param newDeck a deck of [[kasino.cards.Card]]s with which to play a game. Needs at least `4* controllers.size +2` cards.
  */
-class Game (controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDeck: Iterable[Card], context: ActorContext[Dispatch[Game.Message]]) extends KasinoActor[Game.Message](context) {
+class Game (controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDeck: Iterable[Card], implicit val context: ActorContext[Dispatch[Game.Message]]) extends KasinoActor[Game.Message] {
   require(newDeck.size >= 4 * controllers.size + 2, "The provided deck is too small for a game with " + controllers.size + " players.")
 
   private class Deck (deck: Iterable[Card]) extends Queue[Card](deck.size) {

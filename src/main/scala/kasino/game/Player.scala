@@ -34,6 +34,8 @@ object Player {
     case TakeTurn()
     case Act(action: Action)
     case ReportFailure()
+    case GetId(replyTo: ActorRef[UUID])
+    case GetName(replyTo: ActorRef[String])
   }
 }
 
@@ -45,7 +47,7 @@ class Player (private val controller: ActorRef[Dispatch[Controller.Message]],
               currentPlayerId: =>UUID,
               currentPlayerName: =>String,
               actions: Game.ActionProvider,
-              context: ActorContext[Dispatch[Player.Message]]) extends KasinoActor[Player.Message](context) {
+              implicit val context: ActorContext[Dispatch[Player.Message]]) extends KasinoActor[Player.Message] {
   def name: String = controller.name
 
   val id : UUID = controller.id
@@ -60,6 +62,12 @@ class Player (private val controller: ActorRef[Dispatch[Controller.Message]],
   private def end(): Try[Unit] = actions.end()
 
   override def actOnMessage(message: Player.Message): KasinoActor[Player.Message] = {
+    import Player.Message._
+    
+    message match {
+      case GetId(replyTo: ActorRef[UUID]) => replyTo ! id
+      case GetName(replyTo: ActorRef[String]) => replyTo ! name
+    }
     ???
     this
   }

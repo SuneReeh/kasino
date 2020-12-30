@@ -1,19 +1,20 @@
 package kasino.exceptions
 
 import akka.actor.typed.ActorRef
-import kasino.akka.Dispatch
+import akka.actor.typed.scaladsl.ActorContext
+import kasino.akka.{Dispatch, fetch}
 import kasino.cards.Card
 import kasino.game.{CardStack, Player}
 
 abstract class GameplayException(message: String) extends KasinoException(message) 
 
-class TurnOrderException private (playerActing: ActorRef[Dispatch[Player.Message]], playerAtTurn: ActorRef[Dispatch[Player.Message]], message: String) extends GameplayException(message) {
-  require(playerActing.id != playerAtTurn.id, "A TurnOrderException should not be called when the player acting is also at turn.")
+class TurnOrderException private (playerActing: ActorRef[Dispatch[Player.Message]], playerAtTurn: ActorRef[Dispatch[Player.Message]], message: String)(implicit context: ActorContext[?]) extends GameplayException(message) {
+  require(fetch(playerActing, Player.Message.GetId(_)) != fetch(playerAtTurn, Player.Message.GetId(_)), "A TurnOrderException should not be called when the player acting is also at turn.")
   
-  def this(playerActing: ActorRef[Dispatch[Player.Message]], playerAtTurn: ActorRef[Dispatch[Player.Message]], messageOverride: Option[String] = None) = 
+  def this(playerActing: ActorRef[Dispatch[Player.Message]], playerAtTurn: ActorRef[Dispatch[Player.Message]], messageOverride: Option[String] = None)(implicit context: ActorContext[?]) = 
     this(playerActing: ActorRef[Dispatch[Player.Message]], playerAtTurn: ActorRef[Dispatch[Player.Message]], messageOverride match {
       case Some(message) => message
-      case None => s"${playerActing.name} attempted to act during ${playerAtTurn.name}'s turn."
+      case None => s"${fetch(playerActing, Player.Message.GetName(_))} attempted to act during ${fetch(playerAtTurn, Player.Message.GetName(_))}'s turn."
     })
 }
 
