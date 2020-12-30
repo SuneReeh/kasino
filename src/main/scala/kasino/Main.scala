@@ -7,6 +7,9 @@ import kasino.ui.ConsoleController
 import scala.collection.mutable.ArrayDeque
 import scala.io.StdIn
 import scala.util.{Failure, Random, Success, Try}
+import _root_.akka.actor.typed.{ActorRef, ActorSystem, Behavior, Signal, Terminated}
+import _root_.akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
+import kasino.akka.Dispatch
 
 object Main {
   private val isWindows: Boolean = System.getProperty("os.name").toLowerCase.startsWith("win")
@@ -33,39 +36,55 @@ object Main {
   }
 
   def runGame(): Unit = {
-    clearConsole()
-    println("Welcome to 'Noerdekasino'")
-    val numPlayers: Int = {
-      var input: Try[Int] = Success(0)
-      while {
-        input = Try(StdIn.readLine("How many players? ").toInt)
-        input.isFailure
-      } do ()
-      input.get
-    }
-    val deck: Seq[Card] = {
-      var tempDeck: Seq[Card] = Seq()
-      while {
-        val input = StdIn.readLine("Which deck of cards (Modern/Tarot)? ").strip().toLowerCase
-        if input == "modern" then {
-          tempDeck = ModernCard.newDeck
-          false
-        } else if input == "tarot" then {
-          tempDeck = TarotCard.newDeck(Set(Random.nextInt(22),Random.nextInt(22),Random.nextInt(22),Random.nextInt(22),Random.nextInt(22)))
-          false
-        } else true
-      } do ()
-      tempDeck
-    } 
-    val controllers: ArrayDeque[Controller] = ArrayDeque()
-    for i <- 1 to numPlayers do {
-      controllers.append(new ConsoleController(???))
-    }
-    val game: Game = new Game(controllers, deck)
-    game.run()
-    
-    assert(game.gameFinished)
-    clearConsole()
-    println(game.resultReport.getOrElse("Results missing!"))
+    ActorSystem(Behaviors.setup(context => new MainActor(context)), "MainActor")
   }
+}
+
+class MainActor(context: ActorContext[Nothing]) extends AbstractBehavior[Nothing](context) {
+  override def onMessage(msg: Nothing): Behavior[Nothing] = this
+
+  Main.clearConsole()
+  println("Welcome to 'Noerdekasino'")
+  val numPlayers: Int = {
+    var input: Try[Int] = Success(0)
+    while {
+      input = Try(StdIn.readLine("How many players? ").toInt)
+      input.isFailure
+    } do ()
+    input.get
+  }
+  val deck: Seq[Card] = {
+    var tempDeck: Seq[Card] = Seq()
+    while {
+      val input = StdIn.readLine("Which deck of cards (Modern/Tarot)? ").strip().toLowerCase
+      if input == "modern" then {
+        tempDeck = ModernCard.newDeck
+        false
+      } else if input == "tarot" then {
+        tempDeck = TarotCard.newDeck(Set(Random.nextInt(22),Random.nextInt(22),Random.nextInt(22),Random.nextInt(22),Random.nextInt(22)))
+        false
+      } else true
+    } do ()
+    tempDeck
+  }
+  val controllers: ArrayDeque[ActorRef[Dispatch[Controller.Message]]] = ArrayDeque()
+  for i <- 1 to numPlayers do {
+    controllers.append(new ConsoleController(???))
+  }
+  val game: ActorRef[Dispatch[Game.Message]] = new Game(controllers, deck)
+  game.run()
+
+  override def onSignal(signal: Signal): Behavior[Nothing] = {
+    signal match {
+      case Terminated(value: ActorRef[Dispatch[Game.Message]]) =>
+        assert(game.gameFinished)
+        clearConsole()
+        println(game.resultReport.getOrElse("Results missing!"))
+        return Behaviors.stopped
+    }
+    this
+  }
+  
+  
+  
 }
