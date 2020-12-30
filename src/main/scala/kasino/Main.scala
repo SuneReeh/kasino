@@ -86,7 +86,7 @@ class MainActor(context: ActorContext[MainActor.Message]) extends AbstractBehavi
     msg match {
       case GameFinished =>
         import _root_.akka.actor.typed.scaladsl.AskPattern._
-        assert(fetch(game, Game.Message.GetGameFinished(_))(context))
+        assert(fetch[Game.Message.GetGameFinished,Boolean](game, Game.Message.GetGameFinished(_))(context))
         clearConsole()
         println(game.resultReport.getOrElse("Results missing!"))
         return Behaviors.stopped

@@ -23,7 +23,7 @@ object Protocol {
 
 trait Message(val messageId: UUID = UUID.randomUUID())
 
-enum Dispatch[T <: Message] {
+enum Dispatch[+T <: Message] {
   case Letter ( val message: T, val dispatcher: ActorRef[Try[Done]], val receiptTo: ActorRef[StatusReply[Done]]) 
   
   case DispatchComplete( val messageId: UUID)

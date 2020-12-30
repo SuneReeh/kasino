@@ -17,9 +17,8 @@ import Fetcher.Fetch
 def fetch[Query <: Message, Result] (target: ActorRef[Dispatch[Query]], query: ActorRef[Result] => Query)(context: ActorContext[?]) : Result = {
   import akka.actor.typed.scaladsl.AskPattern._
   import scala.concurrent.duration.DurationInt
-  implicit def responseTimeout: akka.util.Timeout = 4.seconds
-  implicit def system: Scheduler = context.system
-  
+  implicit val responseTimeout: akka.util.Timeout = 4.seconds
+  implicit val system: ActorSystem[?] = context.system
   
   val fetcher: ActorRef[Result | Fetch[Result]] = context.spawn(Behaviors.setup(context => new Fetcher[Query, Result](target, query, context)), "Fetcher")
   var futureReply: Future[Result] = fetcher.ask[Result](replyTo => Fetch(replyTo))
