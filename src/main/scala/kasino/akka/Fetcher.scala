@@ -3,6 +3,7 @@ package kasino.akka
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior, Scheduler}
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 
+import java.util.UUID
 import java.util.concurrent.TimeoutException
 import scala.annotation.tailrec
 import scala.concurrent.duration.Duration
@@ -20,7 +21,7 @@ def fetch[Query <: Message, Result] (target: ActorRef[Dispatch[Query]], query: A
   implicit val responseTimeout: akka.util.Timeout = 4.seconds
   implicit val system: ActorSystem[?] = context.system
   
-  val fetcher: ActorRef[Result | Fetch[Result]] = context.spawn(Behaviors.setup(context => new Fetcher[Query, Result](target, query, context)), "Fetcher")
+  val fetcher: ActorRef[Result | Fetch[Result]] = context.spawn(Behaviors.setup(context => new Fetcher[Query, Result](target, query, context)), "Fetcher-"+UUID.randomUUID())
   var futureReply: Future[Result] = fetcher.ask[Result](replyTo => Fetch(replyTo))
   try {
     Await.result(futureReply, Duration.Inf)
