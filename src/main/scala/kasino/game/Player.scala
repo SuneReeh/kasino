@@ -14,8 +14,8 @@ import scala.util.{Failure, Success, Try}
 
 
 object Player {
-  def apply(controller: ActorRef[Dispatch[Controller.Message]], handView: SeqView[Card], tableView: SeqView[CardStack], deckSize: =>Int, currentPlayerId: =>UUID, currentPlayerName: =>String, actions: Game.ActionProvider): Behavior[Dispatch[Message]] = 
-    Behaviors.setup(context => new Player(controller, handView, tableView, deckSize, currentPlayerId, currentPlayerName, actions, context))
+  def apply(controller: ActorRef[Dispatch[Controller.Message]], handView: SeqView[Card], tableView: SeqView[CardStack], deckSize: =>Int, currentPlayerId: =>UUID, currentPlayerName: =>String, actions: Game.ActionProvider, game: ActorRef[Dispatch[Game.Message]]): Behavior[Dispatch[Message]] = 
+    Behaviors.setup(context => new Player(controller, handView, tableView, deckSize, currentPlayerId, currentPlayerName, actions, game, context))
   
   enum Action {
     case Play(posHand: Hand)
@@ -34,7 +34,7 @@ object Player {
     case TakeTurn()
     case Act(action: Action)
     case ActionResult(action: Game.Action, result: Try[Unit])
-    case ReportFailure()
+    case ReportFailure(failed: Failure[Exception])
     case GetId(replyTo: ActorRef[UUID])
     case GetName(replyTo: ActorRef[String])
   }
@@ -48,6 +48,7 @@ class Player (private val controller: ActorRef[Dispatch[Controller.Message]],
               currentPlayerId: =>UUID,
               currentPlayerName: =>String,
               actions: Game.ActionProvider,
+              private val game: ActorRef[Dispatch[Game.Message]],
               implicit val context: ActorContext[Dispatch[Player.Message]]) extends KasinoActor[Player.Message] {
   
   sendMessage(controller, Controller.Message.AttachPlayer(context.self))
@@ -55,53 +56,48 @@ class Player (private val controller: ActorRef[Dispatch[Controller.Message]],
   lazy val name: String = fetch(controller, Controller.Message.GetName(_))
   val id : UUID = fetch(controller, Controller.Message.GetId(_))
 
-  private def play(posHand: Hand): Try[Unit] = actions.play(posHand)()
-  private def add(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Try[Unit] = actions.add(pos1,pos2,res)()
-  private def mod(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Try[Unit] = actions.mod(pos1,pos2,res)()
-  private def combine(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Try[Unit] = actions.combine(pos1,pos2,res)()
-  private def take(posTable: Table, posHand: Hand): Try[Unit] = actions.take(posTable, posHand)()
-  private def fiveOfSpades(posHand : Hand): Try[Unit] = actions.fiveOfSpades(posHand)()
-  private def reset(): Try[Unit] = actions.reset()
-  private def end(): Try[Unit] = actions.end()
-
+  import scala.language.implicitConversions
+  
+  private implicit def playerToGameAction(playerAction: Player.Action): Game.Action = {
+    import Player.Action._
+    playerAction match {
+      case Play(posHand: Hand) => actions.play(posHand)
+      case Add(pos1: CardPosition, pos2: CardPosition, res: Option[Int]) => actions.add(pos1, pos2, res)
+      case Mod(pos1: CardPosition, pos2: CardPosition, res: Option[Int]) => actions.mod(pos1, pos2, res)
+      case Combine(pos1: CardPosition, pos2: CardPosition, res: Option[Int]) => actions.combine(pos1, pos2, res)
+      case Take(posTable: Table, posHand: Hand) => actions.take(posTable, posHand)
+      case FiveOfSpades(posHand : Hand) => actions.fiveOfSpades(posHand)
+      case Reset => actions.reset
+      case End => actions.end
+    }
+  }
+  
+  private implicit def gameToPlayerAction(gameAction: Game.Action): Player.Action = {
+    gameAction match {
+      case play: Game.Action.Play => Player.Action.Play(play.posHand)
+      case add: Game.Action.Add => Player.Action.Add(add.pos1, add.pos2, add.res)
+      case mod: Game.Action.Mod => Player.Action.Mod(mod.pos1, mod.pos2, mod.res)
+      case combine: Game.Action.Combine => Player.Action.Combine(combine.pos1, combine.pos2, combine.res)
+      case take: Game.Action.Take => Player.Action.Take(take.posTable, take.posHand)
+      case fos: Game.Action.FiveOfSpades => Player.Action.FiveOfSpades(fos.posHand)
+      case reset: Game.Action.Reset => Player.Action.Reset
+      case end: Game.Action.End => Player.Action.End
+    }
+  }
+  
   override def actOnMessage(message: Player.Message): KasinoActor[Player.Message] = {
     import Player.Message._
     
     message match {
       case GetId(replyTo: ActorRef[UUID]) => replyTo ! id
       case GetName(replyTo: ActorRef[String]) => replyTo ! name
+      case UpdateGameState() => sendMessage(controller, Controller.Message.UpdateGameState(handView, tableView, deckSize, currentPlayerId, currentPlayerName))
+      case TakeTurn() => sendMessage(controller, Controller.Message.StartTurn())
+      case Act(action: Player.Action) => sendMessage(game, Game.Message.Act(action))
+      case ActionResult(action: Game.Action, result: Try[Unit]) => sendMessage(controller, Controller.Message.ActionResult(action, result))
+      case ReportFailure(failed: Failure[Exception]) => sendMessage(controller, Controller.Message.ReportFailure(failed))
     }
-    ???
     this
-  }
-  
-  def updateGameState(): Unit = {
-    controller.updateGameState(handView, tableView, deckSize, currentPlayerId, currentPlayerName)
-  }
-  
-  def takeTurn(): Unit = {
-    import Player.Action._
-    
-    while !controller.getReady() do ()
-    while {
-      val action = controller.getAction()
-      val attempt: Try[Unit] = action match {
-        case Play(posHand: Hand) => play(posHand)
-        case Add(pos1: CardPosition, pos2: CardPosition, res) => add(pos1, pos2, res)
-        case Mod(pos1: CardPosition, pos2: CardPosition, res) => mod(pos1, pos2, res)
-        case Combine(pos1: CardPosition, pos2: CardPosition, res) => combine(pos1, pos2, res)
-        case Take(posTable: Table, posHand: Hand) => take(posTable, posHand)
-        case FiveOfSpades(posHand : Hand) => fiveOfSpades(posHand)
-        case Reset => reset()
-        case End => end()
-      }
-      attempt match {
-        case Failure(exception: Exception) => controller.reportFailure(Failure(exception))
-        case Failure(otherError) => otherError.printStackTrace(); throw otherError
-        case _ => ()
-      }
-      !(action == End && attempt.isSuccess)
-    } do ()
   }
 }
 

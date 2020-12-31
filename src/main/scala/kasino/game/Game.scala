@@ -35,12 +35,12 @@ object Game {
   }
   
   object Action {
-    abstract class Play(posHand: Hand) extends Action
-    abstract class Add(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None) extends Action
-    abstract class Mod(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None) extends Action
-    abstract class Combine(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None) extends Action
-    abstract class Take(posTable: Table, posHand: Hand) extends Action
-    abstract class FiveOfSpades(posHand : Hand) extends Action
+    abstract class Play(val posHand: Hand) extends Action
+    abstract class Add(val pos1: CardPosition, val pos2: CardPosition, val res: Option[Int] = None) extends Action
+    abstract class Mod(val pos1: CardPosition, val pos2: CardPosition, val res: Option[Int] = None) extends Action
+    abstract class Combine(val pos1: CardPosition, val pos2: CardPosition, val res: Option[Int] = None) extends Action
+    abstract class Take(val posTable: Table, val posHand: Hand) extends Action
+    abstract class FiveOfSpades(val posHand : Hand) extends Action
     abstract class Reset extends Action
     abstract class End extends Action
   }
@@ -113,7 +113,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
     scala.util.Random.shuffle(controllers).map{c =>
       val hand: ArrayDeque[Card] = ArrayDeque()
       val playerId: UUID = fetch(c, Controller.Message.GetId(_))
-      val player: ActorRef[Dispatch[Player.Message]] = context.spawn(Behaviors.setup(context => new Player(c, hand.view, table.view, deckSize, currentPlayerId, currentPlayerName, generatePlayerActions(playerId), context)), "Player-"+playerId)
+      val player: ActorRef[Dispatch[Player.Message]] = context.spawn(Behaviors.setup(context => new Player(c, hand.view, table.view, deckSize, currentPlayerId, currentPlayerName, generatePlayerActions(playerId), this.context.self, context)), "Player-"+playerId)
       hands.addOne(playerId, hand)
       playersById.addOne(playerId, player)
       claimedCards.addOne(playerId, ArrayDeque())
@@ -141,8 +141,8 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
         val result = action()
         sendMessage(playersById(action.playerId), Player.Message.ActionResult(action, result))
         action match {
-          case Game.Action.End if (result.isSuccess && !gameFinished) => sendMessage(playersById(currentPlayerId), Player.Message.TakeTurn())
-          case Game.Action.End if (result.isSuccess && gameFinished) => parent ! kasino.MainActor.Message.GameFinished
+          case _: Game.Action.End if (result.isSuccess && !gameFinished) => sendMessage(playersById(currentPlayerId), Player.Message.TakeTurn())
+          case _: Game.Action.End if (result.isSuccess && gameFinished) => parent ! kasino.MainActor.Message.GameFinished
         }
       }
       case GetResultReport(replyTo: ActorRef[Option[String]]) => replyTo ! resultReport
