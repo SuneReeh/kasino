@@ -49,7 +49,7 @@ class Player (private val controller: ActorRef[Dispatch[Controller.Message]],
               currentPlayerName: =>String,
               actions: Game.ActionProvider,
               private val game: ActorRef[Dispatch[Game.Message]],
-              implicit val context: ActorContext[Dispatch[Player.Message]]) extends KasinoActor[Player.Message] {
+              override implicit val context: ActorContext[Dispatch[Player.Message]]) extends KasinoActor[Player.Message] {
   
   sendMessage(controller, Controller.Message.AttachPlayer(context.self))
   

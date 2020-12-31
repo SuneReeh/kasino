@@ -25,7 +25,7 @@ object Controller {
 }
 
 
-abstract class Controller(implicit val context: ActorContext[Dispatch[Controller.Message]]) extends KasinoActor[Controller.Message] {
+abstract class Controller(override implicit val context: ActorContext[Dispatch[Controller.Message]]) extends KasinoActor[Controller.Message] {
   val id : UUID = UUID.randomUUID()
 
   private var _name : String = ""

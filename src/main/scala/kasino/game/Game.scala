@@ -5,7 +5,7 @@ import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import kasino.akka.{Dispatch, KasinoActor, fetch}
 import kasino.cards.Card
 import kasino.exceptions.{AttemptToClearEmptyTableException, IllegalClaimException, KasinoException, MultipleCardsPlayedException, MultipleStacksOwnedException, NoCardsPlayedException, TurnOrderException, UnableToClaimException}
-import kasino.game.Game.{ActionProvider, CardPosition, Executable}
+import kasino.game.Game.{ActionProvider, CardPosition}
 import kasino.game.Game.CardPosition._
 import reeh.math.BigRational
 
@@ -14,7 +14,7 @@ import scala.collection.mutable.{ArrayDeque, Map, Queue}
 import scala.util.{Failure, Success, Try}
 
 object Game {
-  def apply(parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDeck: Iterable[Card]): Behavior[Dispatch[Message]] = Behaviors.setup(context => new Game(parent, controllers, newDeck, context))
+  def apply(parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDeck: Iterable[Card]): Behavior[Dispatch[Message]] = Behaviors.setup(context => new Game(parent, controllers, newDeck, context))
   
   enum Message extends kasino.akka.Message() {
     case Run()
@@ -31,7 +31,7 @@ object Game {
   sealed trait Action {
     private[Game] def apply(): Try[Unit]
 
-    protected[Game] val playerId: UUID
+    val playerId: UUID
   }
   
   object Action {
@@ -67,7 +67,7 @@ object Game {
  * @param controllers controllers for the [[Player]]s in this game.
  * @param newDeck a deck of [[kasino.cards.Card]]s with which to play a game. Needs at least `4* controllers.size +2` cards.
  */
-class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDeck: Iterable[Card], implicit val context: ActorContext[Dispatch[Game.Message]]) extends KasinoActor[Game.Message] {
+class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDeck: Iterable[Card], override implicit val context: ActorContext[Dispatch[Game.Message]]) extends KasinoActor[Game.Message] {
   require(newDeck.size >= 4 * controllers.size + 2, "The provided deck is too small for a game with " + controllers.size + " players.")
 
   private class Deck (deck: Iterable[Card]) extends Queue[Card](deck.size) {
@@ -335,7 +335,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
     }
     
     override def play(posHand: Hand): Play = new Play(posHand) {
-      override protected val playerId: UUID = newPlayerId
+      override val playerId: UUID = newPlayerId
       
       override def apply(): Try[Unit] = {
         val turnCheck = checkHasTurn()
@@ -353,7 +353,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
     }
 
     override def add(pos1: Game.CardPosition, pos2: Game.CardPosition, res: Option[Int]): Add = new Add(pos1, pos2, res) {
-      override protected val playerId: UUID = newPlayerId
+      override val playerId: UUID = newPlayerId
       
       def apply(): Try[Unit] = {
         val turnCheck = checkHasTurn()
@@ -400,7 +400,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
     }
 
     override def mod(pos1: Game.CardPosition, pos2: Game.CardPosition, res: Option[Int]): Mod = new Mod(pos1, pos2, res) {
-      override protected val playerId: UUID = newPlayerId
+      override val playerId: UUID = newPlayerId
 
       def apply(): Try[Unit] = {
         val turnCheck = checkHasTurn()
@@ -461,7 +461,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
     }
 
     override def combine(pos1: Game.CardPosition, pos2: Game.CardPosition, res: Option[Int]): Combine = new Combine(pos1, pos2, res) {
-      override protected val playerId: UUID = newPlayerId
+      override val playerId: UUID = newPlayerId
 
       def apply(): Try[Unit] = {
         val turnCheck = checkHasTurn()
@@ -506,7 +506,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
     }
 
     override def take(posTable: Table, posHand: Hand): Take = new Take(posTable, posHand) {
-      override protected val playerId: UUID = newPlayerId
+      override val playerId: UUID = newPlayerId
 
       def apply(): Try[Unit] = {
         val turnCheck = checkHasTurn()
@@ -533,7 +533,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
     }
 
     override def fiveOfSpades(posHand: Hand): FiveOfSpades = new FiveOfSpades(posHand) {
-      override protected val playerId: UUID = newPlayerId
+      override val playerId: UUID = newPlayerId
 
       def apply(): Try[Unit] = {
         val turnCheck = checkHasTurn()
@@ -562,7 +562,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
     }
 
     override def reset: Reset = new Reset {
-      override protected val playerId: UUID = newPlayerId
+      override val playerId: UUID = newPlayerId
 
       def apply(): Try[Unit] = {
         val turnCheck = checkHasTurn()
@@ -575,7 +575,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
     }
 
     override def end: End = new End {
-      override protected val playerId: UUID = newPlayerId
+      override val playerId: UUID = newPlayerId
 
       def apply(): Try[Unit] = {
         val turnCheck = checkHasTurn()
