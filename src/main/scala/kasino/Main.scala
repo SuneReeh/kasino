@@ -76,7 +76,7 @@ class MainActor(implicit context: ActorContext[MainActor.Message]) extends Abstr
   for i <- 1 to numPlayers do {
     controllers.append(context.spawn(ConsoleController(),"Controller-"+i))
   }
-  val game: ActorRef[Dispatch[Game.Message]] = context.spawn(Game(controllers, deck),"Game")
+  val game: ActorRef[Dispatch[Game.Message]] = context.spawn(Game(context.self, controllers, deck),"Game")
   akka.dispatch[Game.Message](game, Game.Message.Run())
   
   override def onMessage(msg: MainActor.Message): Behavior[MainActor.Message] = {
@@ -91,6 +91,7 @@ class MainActor(implicit context: ActorContext[MainActor.Message]) extends Abstr
         assert(fetch[Game.Message.GetGameFinished,Boolean](game, Game.Message.GetGameFinished(_)))
         Main.clearConsole()
         println(fetch[Game.Message.GetResultReport,Option[String]](game, Game.Message.GetResultReport(_)).getOrElse("Results missing!"))
+        context.stop(game)
         return Behaviors.stopped
     }
     this

@@ -33,6 +33,7 @@ object Player {
     case UpdateGameState()
     case TakeTurn()
     case Act(action: Action)
+    case ActionResult(action: Game.Action, result: Try[Unit])
     case ReportFailure()
     case GetId(replyTo: ActorRef[UUID])
     case GetName(replyTo: ActorRef[String])

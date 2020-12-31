@@ -2,7 +2,7 @@ package kasino.game
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
-import kasino.akka.{Dispatch, KasinoActor}
+import kasino.akka.{Dispatch, KasinoActor, fetch}
 import kasino.cards.Card
 import kasino.exceptions.{AttemptToClearEmptyTableException, IllegalClaimException, KasinoException, MultipleCardsPlayedException, MultipleStacksOwnedException, NoCardsPlayedException, TurnOrderException, UnableToClaimException}
 import kasino.game.Game.{ActionProvider, CardPosition, Executable}
@@ -14,7 +14,7 @@ import scala.collection.mutable.{ArrayDeque, Map, Queue}
 import scala.util.{Failure, Success, Try}
 
 object Game {
-  def apply(controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDeck: Iterable[Card]): Behavior[Dispatch[Message]] = Behaviors.setup(context => new Game(controllers, newDeck, context))
+  def apply(parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDeck: Iterable[Card]): Behavior[Dispatch[Message]] = Behaviors.setup(context => new Game(parent, controllers, newDeck, context))
   
   enum Message extends kasino.akka.Message() {
     case Run()
@@ -31,7 +31,7 @@ object Game {
   sealed trait Action {
     private[Game] def apply(): Try[Unit]
 
-    protected val playerId: UUID
+    protected[Game] val playerId: UUID
   }
   
   object Action {
@@ -67,7 +67,7 @@ object Game {
  * @param controllers controllers for the [[Player]]s in this game.
  * @param newDeck a deck of [[kasino.cards.Card]]s with which to play a game. Needs at least `4* controllers.size +2` cards.
  */
-class Game (controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDeck: Iterable[Card], implicit val context: ActorContext[Dispatch[Game.Message]]) extends KasinoActor[Game.Message] {
+class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDeck: Iterable[Card], implicit val context: ActorContext[Dispatch[Game.Message]]) extends KasinoActor[Game.Message] {
   require(newDeck.size >= 4 * controllers.size + 2, "The provided deck is too small for a game with " + controllers.size + " players.")
 
   private class Deck (deck: Iterable[Card]) extends Queue[Card](deck.size) {
@@ -112,11 +112,12 @@ class Game (controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDe
   private val players: scala.collection.immutable.Seq[ActorRef[Dispatch[Player.Message]]] =
     scala.util.Random.shuffle(controllers).map{c =>
       val hand: ArrayDeque[Card] = ArrayDeque()
-      val player: ActorRef[Dispatch[Player.Message]] = new Player(c, hand.view, table.view, deckSize, currentPlayerId, currentPlayerName, generatePlayerActions(c.id))
-      hands.addOne(player.id, hand)
-      playersById.addOne(player.id, player)
-      claimedCards.addOne(player.id, ArrayDeque())
-      clears.addOne(player.id, 0)
+      val playerId: UUID = fetch(c, Controller.Message.GetId(_))
+      val player: ActorRef[Dispatch[Player.Message]] = context.spawn(Behaviors.setup(context => new Player(c, hand.view, table.view, deckSize, currentPlayerId, currentPlayerName, generatePlayerActions(playerId), context)), "Player-"+playerId)
+      hands.addOne(playerId, hand)
+      playersById.addOne(playerId, player)
+      claimedCards.addOne(playerId, ArrayDeque())
+      clears.addOne(playerId, 0)
       player
     }.toSeq
   private val numPlayers = players.size
@@ -126,17 +127,24 @@ class Game (controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDe
   def deckSize : Int = deck.size
 
   /** The [[java.util.UUID]] of the current [[Player]]. */
-  def currentPlayerId: UUID = players(currentPlayerPos).id
+  def currentPlayerId: UUID = fetch(players(currentPlayerPos), Player.Message.GetId(_))
 
   /** The name of the current [[Player]]. */
-  def currentPlayerName: String = players(currentPlayerPos).name
+  def currentPlayerName: String = fetch(players(currentPlayerPos), Player.Message.GetName(_))
 
   override def actOnMessage(message: Game.Message): KasinoActor[Game.Message] = {
     import Game.Message._
     message match {
       case Run() => run()
       case GetGameFinished(replyTo: ActorRef[Boolean]) => replyTo ! gameFinished
-      case Act(action: Game.Action) => action()
+      case Act(action: Game.Action) => {
+        val result = action()
+        sendMessage(playersById(action.playerId), Player.Message.ActionResult(action, result))
+        action match {
+          case Game.Action.End if (result.isSuccess && !gameFinished) => sendMessage(playersById(currentPlayerId), Player.Message.TakeTurn())
+          case Game.Action.End if (result.isSuccess && gameFinished) => parent ! kasino.MainActor.Message.GameFinished
+        }
+      }
       case GetResultReport(replyTo: ActorRef[Option[String]]) => replyTo ! resultReport
     }
     this
@@ -147,7 +155,7 @@ class Game (controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDe
       return Failure(new RuntimeException("Game already running."))
     for player <- players do
       for i <- 1 to 4 do
-        hands(player.id).append(deck.draw())
+        hands(fetch(player, Player.Message.GetId(_))).append(deck.draw())
     for i <- 1 to 2 do
       table.append(CardStack(deck.draw()))
     currentPlayerPos = 0
@@ -163,13 +171,12 @@ class Game (controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDe
 
   def run(): Unit = {
     setup()
-    while !gameFinished do
-      players(currentPlayerPos).takeTurn()
+    sendMessage(players(currentPlayerPos), Player.Message.TakeTurn())
   }
 
   private def postGameState(): Unit = {
     for player <- players do
-      player.updateGameState()
+      sendMessage(player, Player.Message.UpdateGameState())
   }
 
   private def resetTurn(): Unit = {
@@ -231,10 +238,10 @@ class Game (controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDe
       for i <- 1 to 4 do
         if deckSize >= numPlayers then
           for player <- players do
-            hands(player.id).append(deck.draw())
+            hands(fetch(player, Player.Message.GetId(_))).append(deck.draw())
       if deckSize < numPlayers * 2 && numPlayers <= deckSize then
         for player <- players do
-          hands(player.id).append(deck.draw())
+          hands(fetch(player, Player.Message.GetId(_))).append(deck.draw())
   }
 
   def endGame(): Unit = {
@@ -247,7 +254,7 @@ class Game (controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDe
     var maxCards: Int = 0
     var maxSpades: Int = 0
     for player <- players do
-      val playerId = player.id
+      val playerId: UUID = fetch(player, Player.Message.GetId(_))
       numCards(playerId) = claimedCards(playerId).size
       numSpades(playerId) = 0
       scores(playerId) = 0
@@ -263,8 +270,9 @@ class Game (controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDe
     val report = new StringBuilder("Result of the game:\n------\n")
     def pluralS(value: BigRational): String = if value.ceil != 1 then "s" else ""
     for player <- players do
-      val playerId = player.id
-      report ++= s"${player.name}\n"
+      val playerId: UUID = fetch(player, Player.Message.GetId(_))
+      val playerName: String = fetch(player, Player.Message.GetName(_))
+      report ++= s"${playerName}\n"
       // 1 point (distributed) for having most cards
       var point: BigRational = if numCards(playerId) == maxCards then BigRational(1, numWithMaxCards) else 0
       scores(playerId) += point
@@ -288,20 +296,20 @@ class Game (controllers: Iterable[ActorRef[Dispatch[Controller.Message]]], newDe
           scores(playerId) += card.points
           report ++= s"${card}: ${card.points} point${pluralS(card.points)}\n"
       // total points
-      report ++= s"Total points for ${player.name}: ${scores(playerId)}\n------\n"
+      report ++= s"Total points for ${playerName}: ${scores(playerId)}\n------\n"
     // Declare winner
     val maxPoints = scores.values.max
     val isDraw = (scores.values.count(_ == maxPoints) > 1)
     if !isDraw then
       for player <- players do
-        if scores(player.id) == maxPoints then
-          report ++= s"The winner is ${player.name} with ${maxPoints} point${pluralS(maxPoints)}!\n"
+        if scores(fetch(player, Player.Message.GetId(_))) == maxPoints then
+          report ++= s"The winner is ${fetch(player, Player.Message.GetName(_))} with ${maxPoints} point${pluralS(maxPoints)}!\n"
     else
       val winners: ArrayDeque[ActorRef[Dispatch[Player.Message]]] = ArrayDeque()
       for player <- players do
-        if scores(player.id) == maxPoints then
+        if scores(fetch(player, Player.Message.GetId(_))) == maxPoints then
           winners.append(player)
-      report ++= s"Shared victory between ${winners.map(_.name).mkString(", ")} with ${maxPoints} point${pluralS(maxPoints)}!"
+      report ++= s"Shared victory between ${winners.map(fetch(_, Player.Message.GetName(_))).mkString(", ")} with ${maxPoints} point${pluralS(maxPoints)}!"
     resultReport = Some(report.result())
   }
   
