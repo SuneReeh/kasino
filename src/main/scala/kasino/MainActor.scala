@@ -18,7 +18,7 @@ object MainActor {
   }
 }
 
-class MainActor(implicit context: ActorContext[MainActor.Message]) extends AbstractBehavior[MainActor.Message](context) {
+class MainActor(override implicit val context: ActorContext[MainActor.Message]) extends AbstractBehavior[MainActor.Message](context) {
 
   Main.clearConsole()
   println("Welcome to 'Noerdekasino'")
@@ -46,7 +46,9 @@ class MainActor(implicit context: ActorContext[MainActor.Message]) extends Abstr
   }
   val controllers: ArrayDeque[ActorRef[Dispatch[Controller.Message]]] = ArrayDeque()
   for i <- 1 to numPlayers do {
-    controllers.append(context.spawn(ConsoleController(),"Controller-"+i))
+    val controller: ActorRef[Dispatch[Controller.Message]] = context.spawn(ConsoleController(),"Controller-"+i)
+    controllers.append(controller)
+    println(s"${kasino.akka.fetch(controller, Controller.Message.GetName(_))} joined the game.")
   }
   val game: ActorRef[Dispatch[Game.Message]] = context.spawn(Game(context.self, controllers, deck),"Game")
   akka.dispatch[Game.Message](game, Game.Message.Run())
