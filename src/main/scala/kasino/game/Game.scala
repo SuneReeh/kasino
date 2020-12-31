@@ -143,6 +143,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
         action match {
           case _: Game.Action.End if (result.isSuccess && !gameFinished) => sendMessage(playersById(currentPlayerId), Player.Message.TakeTurn())
           case _: Game.Action.End if (result.isSuccess && gameFinished) => parent ! kasino.MainActor.Message.GameFinished
+          case _ => ()
         }
       }
       case GetResultReport(replyTo: ActorRef[Option[String]]) => replyTo ! resultReport

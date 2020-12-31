@@ -25,7 +25,7 @@ def fetch[Query <: Message, Result] (target: ActorRef[Dispatch[Query]], query: A
   try {
     Await.result(futureReply, Duration.Inf)
   } catch {
-    case TimeoutException => fetch(target, query)(context)
+    case _: TimeoutException => fetch(target, query)(context)
   }
 }
 
