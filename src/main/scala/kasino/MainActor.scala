@@ -15,6 +15,7 @@ import scala.util.{Random, Success, Try}
 object MainActor {
   enum Message {
     case GameFinished
+    case Run
   }
 }
 
@@ -51,13 +52,13 @@ class MainActor(override implicit val context: ActorContext[MainActor.Message]) 
     println(s"${kasino.akka.fetch(controller, Controller.Message.GetName(_))} joined the game.")
   }
   val game: ActorRef[Dispatch[Game.Message]] = context.spawn(Game(context.self, controllers, deck),"Game")
-  akka.dispatch[Game.Message](game, Game.Message.Run())
-
+  
   override def onMessage(msg: MainActor.Message): Behavior[MainActor.Message] = {
     import MainActor.Message._
     import akka.fetch
 
     msg match {
+      case Run => akka.dispatch[Game.Message](game, Game.Message.Run())
       case GameFinished =>
         import _root_.akka.actor.typed.scaladsl.AskPattern._
         import kasino.akka.fetch

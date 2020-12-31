@@ -40,6 +40,7 @@ object Main {
 
   def runGame(): Unit = {
     val system = ActorSystem(Behaviors.setup(context => new MainActor()(context)), "MainActor")
+    system ! MainActor.Message.Run
     Await.result(system.whenTerminated, Duration.Inf)
   }
 }
