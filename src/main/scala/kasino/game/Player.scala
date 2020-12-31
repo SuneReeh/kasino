@@ -2,7 +2,7 @@ package kasino.game
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
-import kasino.akka.{Dispatch, KasinoActor}
+import kasino.akka.{Dispatch, KasinoActor, fetch}
 import kasino.cards.Card
 import kasino.exceptions.KasinoException
 import kasino.game.Game.{ActionProvider, CardPosition}
@@ -48,9 +48,9 @@ class Player (private val controller: ActorRef[Dispatch[Controller.Message]],
               currentPlayerName: =>String,
               actions: Game.ActionProvider,
               implicit val context: ActorContext[Dispatch[Player.Message]]) extends KasinoActor[Player.Message] {
-  def name: String = controller.name
+  lazy val name: String = fetch(controller, Controller.Message.GetName(_))
 
-  val id : UUID = controller.id
+  val id : UUID = fetch(controller, Controller.Message.GetId(_))
 
   private def play(posHand: Hand): Try[Unit] = actions.play(posHand)()
   private def add(pos1: CardPosition, pos2: CardPosition, res: Option[Int] = None): Try[Unit] = actions.add(pos1,pos2,res)()

@@ -16,10 +16,10 @@ import scala.util.{Failure, Success, Try}
 import scala.io.StdIn
 
 object ConsoleController {
-  def apply(): Behavior[Dispatch[Controller.Message]] = Behaviors.setup(context => new ConsoleController(context))
+  def apply(): Behavior[Dispatch[Controller.Message]] = Behaviors.setup(context => new ConsoleController()(context))
 }
 
-class ConsoleController(context: ActorContext[Dispatch[Controller.Message]]) extends Controller(context) {
+class ConsoleController(implicit context: ActorContext[Dispatch[Controller.Message]]) extends Controller {
   getName()
   
   def getName(): Unit = {
@@ -42,7 +42,7 @@ class ConsoleController(context: ActorContext[Dispatch[Controller.Message]]) ext
     message match {
       case AttachPlayer(player: ActorRef[Dispatch[Player.Message]]) => 
         this.player = player
-        sendMessage(player, Player.Message.NameAndId(name, id))
+        //sendMessage(player, Player.Message.NameAndId(name, id))
       case UpdateGameState(handView: SeqView[Card], tableView: SeqView[CardStack], deckSize: Int, currentPlayerId: UUID, currentPlayerName: String) => updateGameState(handView, tableView,deckSize,currentPlayerId,currentPlayerName)
       case StartTurn() =>
         hasTurn = true
@@ -55,7 +55,9 @@ class ConsoleController(context: ActorContext[Dispatch[Controller.Message]]) ext
           hasTurn = false
         else sendMessage(player, Player.Message.Act(getAction()))
       //case EndTurn() => ()//hasTurn = false
-      case ReportFailure(failed: Failure[Exception]) => reportFailure(failed)
+      case ReportFailure(failed: Failure[Exception]) => this.reportFailure(failed)
+      case GetId(replyTo: ActorRef[UUID]) => replyTo ! id
+      case GetName(replyTo: ActorRef[String]) => replyTo ! name
     }
     this
   }

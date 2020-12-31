@@ -19,6 +19,8 @@ object Controller {
     case ActionResult(action: Player.Action, result: Try[Unit])
     //case EndTurn()
     case ReportFailure(failed: Failure[Exception])
+    case GetId(replyTo: ActorRef[UUID])
+    case GetName(replyTo: ActorRef[String])
   }
 }
 
