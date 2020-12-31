@@ -11,6 +11,9 @@ import _root_.akka.actor.typed.{ActorRef, ActorSystem, Behavior, Signal, Termina
 import _root_.akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import kasino.akka.Dispatch
 
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+
 object Main {
   private val isWindows: Boolean = System.getProperty("os.name").toLowerCase.startsWith("win")
   
@@ -36,7 +39,8 @@ object Main {
   }
 
   def runGame(): Unit = {
-    ActorSystem(Behaviors.setup(context => new MainActor()(context)), "MainActor")
+    val system = ActorSystem(Behaviors.setup(context => new MainActor()(context)), "MainActor")
+    Await.result(system.whenTerminated, Duration.Inf)
   }
 }
 
