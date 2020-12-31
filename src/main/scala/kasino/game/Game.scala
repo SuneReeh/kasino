@@ -113,7 +113,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
     scala.util.Random.shuffle(controllers).map{c =>
       val hand: ArrayDeque[Card] = ArrayDeque()
       val playerId: UUID = fetch(c, Controller.Message.GetId(_))
-      val player: ActorRef[Dispatch[Player.Message]] = context.spawn(Behaviors.setup(context => new Player(c, hand.view, table.view, deckSize, currentPlayerId, currentPlayerName, generatePlayerActions(playerId), this.context.self, context)), "Player-"+playerId)
+      val player: ActorRef[Dispatch[Player.Message]] = context.spawn(Player(c, hand.view, table.view, deckSize, currentPlayerId, currentPlayerName, generatePlayerActions(playerId), this.context.self), "Player-"+playerId)
       hands.addOne(playerId, hand)
       playersById.addOne(playerId, player)
       claimedCards.addOne(playerId, ArrayDeque())
