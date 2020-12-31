@@ -343,7 +343,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
         val usedCardCheck = checkNoUsedCard()
         if usedCardCheck.isFailure then return usedCardCheck
         
-        val card = Try(hands(playerId).remove(posHand.i))
+        val card = Try(hands(playerId).remove(this.posHand.i))
         if card.isFailure then return Failure(card.failed.get)
         usedCard = Some(card.get)
         table.append(CardStack(card.get,playersById(playerId)))
@@ -364,7 +364,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
           if usedCardCheck.isFailure then return usedCardCheck
 
           val playerHand = hands(playerId)
-          val result = Try((table(tablePos) + CardStack(playerHand(handPos))) (res, Some(playersById(playerId))))
+          val result = Try((table(tablePos) + CardStack(playerHand(handPos))) (this.res, Some(playersById(playerId))))
           if result.isFailure then return Failure(result.failed.get)
           table.update(tablePos, result.get)
           usedCard = Some(playerHand(handPos))
@@ -375,7 +375,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
         }
 
         def tableAndTable (tablePosMin: Int, tablePosMax: Int): Try[Unit] = {
-          val result = Try((table(tablePosMin) + table(tablePosMax)) (res, Some(playersById(playerId))))
+          val result = Try((table(tablePosMin) + table(tablePosMax)) (this.res, Some(playersById(playerId))))
           if result.isFailure then return Failure(result.failed.get)
           table.update(tablePosMin, result.get)
           table.remove(tablePosMax)
@@ -383,13 +383,13 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
           postGameState()
           Success(())
         }
-        
-        pos1 match {
-          case Hand(handPos) => pos2 match {
+
+        this.pos1 match {
+          case Hand(handPos) => this.pos2 match {
             case Hand(_) => return Failure(new MultipleCardsPlayedException)
             case Table(tablePos) => tableAndHand(tablePos, handPos)
           }
-          case Table(tablePos1) => pos2 match {
+          case Table(tablePos1) => this.pos2 match {
             case Hand(handPos) => tableAndHand(tablePos1, handPos)
             case Table(tablePos2) => 
               if tablePos1 == tablePos2 then return Failure(new IllegalArgumentException("Cannot add a CardStack with itself."))
@@ -411,7 +411,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
           if usedCardCheck.isFailure then return usedCardCheck
 
           val playerHand = hands(playerId)
-          val result = Try((table(tablePos) % CardStack(playerHand(handPos))) (res, Some(playersById(playerId))))
+          val result = Try((table(tablePos) % CardStack(playerHand(handPos))) (this.res, Some(playersById(playerId))))
           if result.isFailure then return Failure(result.failed.get)
           table.update(tablePos, result.get)
           usedCard = Some(playerHand(handPos))
@@ -425,15 +425,15 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
           var result = {
             // table(tablePosMin) comes directly from the player hand this turn
             if table(tablePosMin).cards.size == 1 && table(tablePosMin).ownerId == Some(playerId) then
-              Try((table(tablePosMax) % table(tablePosMin)) (res, Some(playersById(playerId))))
+              Try((table(tablePosMax) % table(tablePosMin)) (this.res, Some(playersById(playerId))))
             // table(tablePosMax) comes directly from the player hand this turn
             else if table(tablePosMax).cards.size == 1 && table(tablePosMax).ownerId == Some(playerId) then
-              Try((table(tablePosMin) % table(tablePosMax)) (res, Some(playersById(playerId))))
+              Try((table(tablePosMin) % table(tablePosMax)) (this.res, Some(playersById(playerId))))
             // both CardStacks are pre-existing on the table
             else
-              var biResult = Try((table(tablePosMin) % table(tablePosMax)) (res, Some(playersById(playerId))))
+              var biResult = Try((table(tablePosMin) % table(tablePosMax)) (this.res, Some(playersById(playerId))))
               if biResult.isFailure then
-                biResult = Try((table(tablePosMax) % table(tablePosMin)) (res, Some(playersById(playerId))))
+                biResult = Try((table(tablePosMax) % table(tablePosMin)) (this.res, Some(playersById(playerId))))
               biResult
           }
           if result.isFailure then
@@ -445,12 +445,12 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
           Success(())
         }
 
-        pos1 match {
-          case Hand(handPos) => pos2 match {
+        this.pos1 match {
+          case Hand(handPos) => this.pos2 match {
             case Hand(_) => return Failure(new MultipleCardsPlayedException)
             case Table(tablePos) => tableAndHand(tablePos, handPos)
           }
-          case Table(tablePos1) => pos2 match {
+          case Table(tablePos1) => this.pos2 match {
             case Hand(handPos) => tableAndHand(tablePos1, handPos)
             case Table(tablePos2) =>
               if tablePos1 == tablePos2 then return Failure(new IllegalArgumentException("Cannot take remainder of a CardStack with itself."))
@@ -472,7 +472,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
           if usedCardCheck.isFailure then return usedCardCheck
 
           val playerHand = hands(playerId)
-          val result = Try((table(tablePos) & CardStack(playerHand(handPos))) (res, Some(playersById(playerId))))
+          val result = Try((table(tablePos) & CardStack(playerHand(handPos))) (this.res, Some(playersById(playerId))))
           if result.isFailure then return Failure(result.failed.get)
           table.update(tablePos, result.get)
           usedCard = Some(playerHand(handPos))
@@ -482,7 +482,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
         }
 
         def tableAndTable (tablePosMin: Int, tablePosMax: Int): Try[Unit] = {
-          val result = Try((table(tablePosMin) & table(tablePosMax)) (res, Some(playersById(playerId))))
+          val result = Try((table(tablePosMin) & table(tablePosMax)) (this.res, Some(playersById(playerId))))
           if result.isFailure then return Failure(result.failed.get)
           table.update(tablePosMin, result.get)
           table.remove(tablePosMax)
@@ -490,12 +490,12 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
           Success(())
         }
 
-        pos1 match {
-          case Hand(handPos) => pos2 match {
+        this.pos1 match {
+          case Hand(handPos) => this.pos2 match {
             case Hand(_) => return Failure(new MultipleCardsPlayedException)
             case Table(tablePos) => tableAndHand(tablePos, handPos)
           }
-          case Table(tablePos1) => pos2 match {
+          case Table(tablePos1) => this.pos2 match {
             case Hand(handPos) => tableAndHand(tablePos1, handPos)
             case Table(tablePos2) =>
               if tablePos1 == tablePos2 then return Failure(new IllegalArgumentException("Cannot combine a CardStack with itself."))
@@ -514,10 +514,10 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
         val usedCardCheck = checkNoUsedCard()
         if usedCardCheck.isFailure then return usedCardCheck
 
-        val stack = Try(table(posTable.i))
+        val stack = Try(table(this.posTable.i))
         if stack.isFailure then return Failure(stack.failed.get)
         val hand = hands(playerId)
-        val card = Try(hand(posHand.i))
+        val card = Try(hand(this.posHand.i))
         if card.isFailure then return Failure(card.failed.get)
         
         if stack.get.values.intersect(card.get.values).isEmpty then return Failure(new IllegalClaimException(stack.get,card.get))
@@ -525,8 +525,8 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
         cardsToClaim.append(card.get)
         cardsToClaim.appendAll(stack.get.cards)
         lastToClaim = Some(playerId)
-        hand.remove(posHand.i)
-        table.remove(posTable.i)
+        hand.remove(this.posHand.i)
+        table.remove(this.posTable.i)
         postGameState()
         Success(())
       }
@@ -542,7 +542,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
         if usedCardCheck.isFailure then return usedCardCheck
         
         val hand = hands(playerId)
-        val card = Try(hand(posHand.i))
+        val card = Try(hand(this.posHand.i))
         if card.isFailure then return Failure(card.failed.get)
 
 
@@ -553,7 +553,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message.GameFinished], controllers
         cardsToClaim.append(card.get)
         for stack <- table do 
           cardsToClaim.appendAll(stack.cards)
-        hand.remove(posHand.i)
+        hand.remove(this.posHand.i)
         table.clear()
         lastToClaim = Some(playerId)
         postGameState()
