@@ -12,6 +12,8 @@ lazy val root = project
 
 mainClass in assembly := Some("kasino.Main")
 
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
+
 libraryDependencies += ("com.typesafe.akka" %% "akka-actor-typed" % "2.6.10").withDottyCompat(scalaVersion.value)
 
 libraryDependencies += ("org.scalatest" %% "scalatest" % "3.2.3" % "test")//.withDottyCompat(scalaVersion.value)
