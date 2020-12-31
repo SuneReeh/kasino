@@ -1,7 +1,8 @@
 package kasino.game
 
 import akka.actor.typed.ActorRef
-import kasino.akka.Dispatch
+import akka.actor.typed.scaladsl.ActorContext
+import kasino.akka.{Dispatch, fetch}
 import kasino.cards.Card
 import kasino.exceptions.ArithmeticException.OpType
 import kasino.exceptions.{AmbiguousResultException, InvalidResultException, LockedValueException}
@@ -16,7 +17,7 @@ class CardStack private(val values: Set[Int],
                         val cards: Seq[Card],
                         ownerIdInput: Option[UUID] = None,
                         ownerNameInput: Option[String] = None,
-                        val lockedValue: Boolean = false) {
+                        val lockedValue: Boolean = false)(implicit context: ActorContext[?]) {
 
   private var _ownerId: Option[UUID] = ownerIdInput
   private var _ownerName: Option[String] = ownerNameInput
@@ -98,7 +99,7 @@ class CardStack private(val values: Set[Int],
         for v1 <- values do
           for v2 <- other.values do
             resultValue = v1 + v2
-        return new CardStack(Set(resultValue), points + other.points, cards ++ other.cards, owner.map(_.id), owner.map(_.name))
+        return new CardStack(Set(resultValue), points + other.points, cards ++ other.cards, owner.map(fetch(_, Player.Message.GetId(_))), owner.map(fetch(_, Player.Message.GetName(_))))
     else
       var resultIsValid = false
       for v1 <- values do
@@ -106,7 +107,7 @@ class CardStack private(val values: Set[Int],
           if result.get == v1 + v2 then
             resultIsValid = true
       if resultIsValid then
-        return new CardStack(Set(result.get), points + other.points, cards ++ other.cards, owner.map(_.id), owner.map(_.name))
+        return new CardStack(Set(result.get), points + other.points, cards ++ other.cards, owner.map(fetch(_, Player.Message.GetId(_))), owner.map(fetch(_, Player.Message.GetName(_))))
       else
         throw new InvalidResultException(OpType.Sum, this, other, result)
   }
@@ -152,7 +153,7 @@ class CardStack private(val values: Set[Int],
             if v2 > v1 then
               throw new InvalidResultException(OpType.Mod, this, other, None)
             resultValue = v1 % v2
-        return new CardStack(Set(resultValue), points + other.points, cards ++ other.cards, owner.map(_.id), owner.map(_.name))
+        return new CardStack(Set(resultValue), points + other.points, cards ++ other.cards, owner.map(fetch(_, Player.Message.GetId(_))), owner.map(fetch(_, Player.Message.GetName(_))))
     else
       var resultIsValid = false
       for v1 <- values do
@@ -160,7 +161,7 @@ class CardStack private(val values: Set[Int],
           if v2 != 0 && v2 <= v1 && result.get == v1 % v2 then
             resultIsValid = true
       if resultIsValid then
-        return new CardStack(Set(result.get), points + other.points, cards ++ other.cards, owner.map(_.id), owner.map(_.name))
+        return new CardStack(Set(result.get), points + other.points, cards ++ other.cards, owner.map(fetch(_, Player.Message.GetId(_))), owner.map(fetch(_, Player.Message.GetName(_))))
       else
         throw new InvalidResultException(OpType.Mod, this, other, result)
   }
@@ -197,7 +198,7 @@ class CardStack private(val values: Set[Int],
         for v1 <- values do
           for v2 <- other.values do
             if v1 == v2 then
-              return new CardStack(Set(v1), points + other.points, cards ++ other.cards, owner.map(_.id), owner.map(_.name), true)
+              return new CardStack(Set(v1), points + other.points, cards ++ other.cards, owner.map(fetch(_, Player.Message.GetId(_))), owner.map(fetch(_, Player.Message.GetName(_))), true)
             else
               throw new InvalidResultException(OpType.Combine, this, other, None)
         return (null: CardStack) //Unreachable
@@ -208,7 +209,7 @@ class CardStack private(val values: Set[Int],
           if result.get == v1 && v1 == v2 then
             resultIsValid = true
       if resultIsValid then
-        return new CardStack(Set(result.get), points + other.points, cards ++ other.cards, owner.map(_.id), owner.map(_.name), true)
+        return new CardStack(Set(result.get), points + other.points, cards ++ other.cards, owner.map(fetch(_, Player.Message.GetId(_))), owner.map(fetch(_, Player.Message.GetName(_))), true)
       else
         throw new InvalidResultException(OpType.Sum, this, other, result)
   }
@@ -225,7 +226,7 @@ object CardStack {
    * @param ownerName optional name of the [[Player]] constructing this [[CardStack]].
    * @return a new [[CardStack]] with the same values and points as the provided card, containing the card, and (optionally) with the specified player name as ownerName.
    */
-  def apply(card: Card, ownerName: Option[String] = None): CardStack = {
+  def apply(card: Card, ownerName: Option[String] = None)(implicit context: ActorContext[?]): CardStack = {
     new CardStack(card.values, card.points, Seq(card), ownerNameInput = ownerName)
   }
 
@@ -236,8 +237,8 @@ object CardStack {
    * @param owner optional [[Player]] constructing this [[CardStack]].
    * @return a new [[CardStack]] with the same values and points as the provided card, containing the card, and (optionally) with the specified player providing ownerId and ownerName.
    */
-  def apply(card: Card, owner: ActorRef[Dispatch[Player.Message]]): CardStack = {
-    new CardStack(card.values, card.points, Seq(card), ownerNameInput = Some(owner.name), ownerIdInput = Some(owner.id))
+  def apply(card: Card, owner: ActorRef[Dispatch[Player.Message]])(implicit context: ActorContext[?]): CardStack = {
+    new CardStack(card.values, card.points, Seq(card), ownerNameInput = Some(fetch(owner, Player.Message.GetName(_))), ownerIdInput = Some(fetch(owner, Player.Message.GetId(_))))
   }
 }
 
