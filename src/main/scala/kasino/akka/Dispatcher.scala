@@ -9,7 +9,7 @@ import java.util.concurrent.TimeoutException
 import scala.util.{Failure, Success, Try}
 import Dispatch.Letter
 
-def dispatch[T <: Message]( recipient : ActorRef[Letter[T]], message: T)(implicit context: ActorContext[?]) : ActorRef[Try[Done]] = context.spawn(Behaviors.setup(context => new Dispatcher[T](recipient, message, context)),"Dispatcher")
+def dispatch[T <: Message]( recipient : ActorRef[Letter[T]], message: T)(implicit context: ActorContext[?]) : ActorRef[Try[Done]] = context.spawn(Behaviors.setup(context => new Dispatcher[T](recipient, message, context)),"Dispatcher-"+message.messageId)
 
 class Dispatcher[T <: Message]( val recipient : ActorRef[Letter[T]], val message: T, context: ActorContext[Try[Done]]) extends AbstractBehavior[Try[Done]](context) {
   import scala.concurrent.duration.DurationInt
