@@ -21,6 +21,8 @@ object Game {
     case Act(action: Action)
     case GetGameFinished(replyTo: ActorRef[Boolean])
     case GetResultReport(replyTo: ActorRef[Option[String]])
+    case GetCurrentPlayerId(replyTo: ActorRef[UUID])
+    case GetCurrentPlayerName(replyTo: ActorRef[String])
   }
   
   enum CardPosition {
@@ -113,7 +115,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
     scala.util.Random.shuffle(controllers).map{c =>
       val hand: ArrayDeque[Card] = ArrayDeque()
       val playerId: UUID = fetch(c, Controller.Message.GetId(_))
-      val player: ActorRef[Dispatch[Player.Message]] = context.spawn(Player(c, hand.view, table.view, deckSize, currentPlayerId, currentPlayerName, generatePlayerActions(playerId), this.context.self), "Player-"+playerId)
+      val player: ActorRef[Dispatch[Player.Message]] = context.spawn(Player(c, hand.view, table.view, deckSize, generatePlayerActions(playerId), this.context.self), "Player-"+playerId)
       hands.addOne(playerId, hand)
       playersById.addOne(playerId, player)
       claimedCards.addOne(playerId, ArrayDeque())
@@ -147,6 +149,8 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
         }
       }
       case GetResultReport(replyTo: ActorRef[Option[String]]) => replyTo ! resultReport
+      case GetCurrentPlayerId(replyTo: ActorRef[UUID]) => replyTo ! currentPlayerId
+      case GetCurrentPlayerName(replyTo: ActorRef[String]) => replyTo ! currentPlayerName
     }
     this
   }

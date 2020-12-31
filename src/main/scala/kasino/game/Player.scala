@@ -14,8 +14,8 @@ import scala.util.{Failure, Success, Try}
 
 
 object Player {
-  def apply(controller: ActorRef[Dispatch[Controller.Message]], handView: SeqView[Card], tableView: SeqView[CardStack], deckSize: =>Int, currentPlayerId: =>UUID, currentPlayerName: =>String, actions: Game.ActionProvider, game: ActorRef[Dispatch[Game.Message]]): Behavior[Dispatch[Message]] = 
-    Behaviors.setup(context => new Player(controller, handView, tableView, deckSize, currentPlayerId, currentPlayerName, actions, game, context))
+  def apply(controller: ActorRef[Dispatch[Controller.Message]], handView: SeqView[Card], tableView: SeqView[CardStack], deckSize: =>Int, actions: Game.ActionProvider, game: ActorRef[Dispatch[Game.Message]]): Behavior[Dispatch[Message]] = 
+    Behaviors.setup(context => new Player(controller, handView, tableView, deckSize, actions, game, context))
   
   enum Action {
     case Play(posHand: Hand)
@@ -45,8 +45,6 @@ class Player (private val controller: ActorRef[Dispatch[Controller.Message]],
               private val handView: SeqView[Card], 
               private val tableView: SeqView[CardStack],
               deckSize: =>Int,
-              currentPlayerId: =>UUID,
-              currentPlayerName: =>String,
               actions: Game.ActionProvider,
               private val game: ActorRef[Dispatch[Game.Message]],
               override implicit val context: ActorContext[Dispatch[Player.Message]]) extends KasinoActor[Player.Message] {
@@ -91,7 +89,7 @@ class Player (private val controller: ActorRef[Dispatch[Controller.Message]],
     message match {
       case GetId(replyTo: ActorRef[UUID]) => replyTo ! id
       case GetName(replyTo: ActorRef[String]) => replyTo ! name
-      case UpdateGameState() => sendMessage(controller, Controller.Message.UpdateGameState(handView, tableView, deckSize, currentPlayerId, currentPlayerName))
+      case UpdateGameState() => sendMessage(controller, Controller.Message.UpdateGameState(handView, tableView, deckSize, fetch(game, Game.Message.GetCurrentPlayerId(_)), fetch(game, Game.Message.GetCurrentPlayerName(_))))
       case TakeTurn() => sendMessage(controller, Controller.Message.StartTurn())
       case Act(action: Player.Action) => sendMessage(game, Game.Message.Act(action))
       case ActionResult(action: Game.Action, result: Try[Unit]) => sendMessage(controller, Controller.Message.ActionResult(action, result))
