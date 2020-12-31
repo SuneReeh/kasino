@@ -48,8 +48,10 @@ class Player (private val controller: ActorRef[Dispatch[Controller.Message]],
               currentPlayerName: =>String,
               actions: Game.ActionProvider,
               implicit val context: ActorContext[Dispatch[Player.Message]]) extends KasinoActor[Player.Message] {
+  
+  sendMessage(controller, Controller.Message.AttachPlayer(context.self))
+  
   lazy val name: String = fetch(controller, Controller.Message.GetName(_))
-
   val id : UUID = fetch(controller, Controller.Message.GetId(_))
 
   private def play(posHand: Hand): Try[Unit] = actions.play(posHand)()
