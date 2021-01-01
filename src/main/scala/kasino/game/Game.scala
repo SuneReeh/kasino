@@ -110,29 +110,29 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
   private val deck: Deck = new Deck(scala.util.Random.shuffle(newDeck))
   private val table: ArrayDeque[CardStack] = ArrayDeque()
   private val hands: Map[UUID, ArrayDeque[Card]] = Map.empty
-  private val playersById: Map[UUID, ActorRef[Dispatch[Player.Message]]] = Map.empty
-  private val players: scala.collection.immutable.Seq[ActorRef[Dispatch[Player.Message]]] =
+  private val playerRefById: Map[UUID, ActorRef[Dispatch[Player.Message]]] = Map.empty
+  private val playerIds: scala.collection.immutable.Seq[UUID] =
     scala.util.Random.shuffle(controllers).map{c =>
       val hand: ArrayDeque[Card] = ArrayDeque()
       val playerId: UUID = fetch(c, Controller.Message.GetId(_))
       val player: ActorRef[Dispatch[Player.Message]] = context.spawn(Player(c, hand.view, table.view, deckSize, generatePlayerActions(playerId), this.context.self), "Player-"+playerId)
       hands.addOne(playerId, hand)
-      playersById.addOne(playerId, player)
+      playerRefById.addOne(playerId, player)
       claimedCards.addOne(playerId, ArrayDeque())
       clears.addOne(playerId, 0)
-      player
+      playerId
     }.toSeq
-  private val numPlayers = players.size
+  private val numPlayers = playerIds.size
 
 
   /** The number of [[kasino.cards.Card]]s remaining in the deck. */
   def deckSize : Int = deck.size
 
   /** The [[java.util.UUID]] of the current [[Player]]. */
-  def currentPlayerId: UUID = fetch(players(currentPlayerPos), Player.Message.GetId(_))
+  def currentPlayerId: UUID = playerIds(currentPlayerPos)
 
   /** The name of the current [[Player]]. */
-  def currentPlayerName: String = fetch(players(currentPlayerPos), Player.Message.GetName(_))
+  def currentPlayerName: String = fetch(playerRefById(currentPlayerId), Player.Message.GetName(_))
 
   override def actOnMessage(message: Game.Message): KasinoActor[Game.Message] = {
     import Game.Message._
@@ -141,9 +141,9 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
       case GetGameFinished(replyTo: ActorRef[Boolean]) => replyTo ! gameFinished
       case Act(action: Game.Action) => {
         val result = action()
-        sendMessage(playersById(action.playerId), Player.Message.ActionResult(action, result))
+        sendMessage(playerRefById(action.playerId), Player.Message.ActionResult(action, result))
         action match {
-          case _: Game.Action.End if (result.isSuccess && !gameFinished) => sendMessage(playersById(currentPlayerId), Player.Message.TakeTurn())
+          case _: Game.Action.End if (result.isSuccess && !gameFinished) => sendMessage(playerRefById(currentPlayerId), Player.Message.TakeTurn())
           case _: Game.Action.End if (result.isSuccess && gameFinished) => parent ! kasino.MainActor.Message.GameFinished
           case _ => ()
         }
@@ -158,9 +158,9 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
   def setup(): Try[Unit] = {
     if gameStarted then
       return Failure(new RuntimeException("Game already running."))
-    for player <- players do
+    for playerId <- playerIds do
       for i <- 1 to 4 do
-        hands(fetch(player, Player.Message.GetId(_))).append(deck.draw())
+        hands(playerId).append(deck.draw())
     for i <- 1 to 2 do
       table.append(CardStack(deck.draw()))
     currentPlayerPos = 0
@@ -176,11 +176,11 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
 
   def run(): Unit = {
     setup()
-    sendMessage(players(currentPlayerPos), Player.Message.TakeTurn())
+    sendMessage(playerRefById(currentPlayerId), Player.Message.TakeTurn())
   }
 
   private def postGameState(): Unit = {
-    for player <- players do
+    for player <- playerRefById.values do
       sendMessage(player, Player.Message.UpdateGameState())
   }
 
@@ -242,11 +242,11 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
     else
       for i <- 1 to 4 do
         if deckSize >= numPlayers then
-          for player <- players do
-            hands(fetch(player, Player.Message.GetId(_))).append(deck.draw())
+          for playerId <- playerIds do
+            hands(playerId).append(deck.draw())
       if deckSize < numPlayers * 2 && numPlayers <= deckSize then
-        for player <- players do
-          hands(fetch(player, Player.Message.GetId(_))).append(deck.draw())
+        for playerId <- playerIds do
+          hands(playerId).append(deck.draw())
   }
 
   def endGame(): Unit = {
@@ -258,8 +258,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
     scores.clear()
     var maxCards: Int = 0
     var maxSpades: Int = 0
-    for player <- players do
-      val playerId: UUID = fetch(player, Player.Message.GetId(_))
+    for playerId <- playerIds do
       numCards(playerId) = claimedCards(playerId).size
       numSpades(playerId) = 0
       scores(playerId) = 0
@@ -274,9 +273,8 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
     val numWithMaxSpades: Int = numSpades.values.count(_ == maxSpades)
     val report = new StringBuilder("Result of the game:\n------\n")
     def pluralS(value: BigRational): String = if value.ceil != 1 then "s" else ""
-    for player <- players do
-      val playerId: UUID = fetch(player, Player.Message.GetId(_))
-      val playerName: String = fetch(player, Player.Message.GetName(_))
+    for playerId <- playerIds do
+      val playerName: String = fetch(playerRefById(playerId), Player.Message.GetName(_))
       report ++= s"${playerName}\n"
       // 1 point (distributed) for having most cards
       var point: BigRational = if numCards(playerId) == maxCards then BigRational(1, numWithMaxCards) else 0
@@ -306,14 +304,14 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
     val maxPoints = scores.values.max
     val isDraw = (scores.values.count(_ == maxPoints) > 1)
     if !isDraw then
-      for player <- players do
-        if scores(fetch(player, Player.Message.GetId(_))) == maxPoints then
-          report ++= s"The winner is ${fetch(player, Player.Message.GetName(_))} with ${maxPoints} point${pluralS(maxPoints)}!\n"
+      for playerId <- playerIds do
+        if scores(playerId) == maxPoints then
+          report ++= s"The winner is ${fetch(playerRefById(playerId), Player.Message.GetName(_))} with ${maxPoints} point${pluralS(maxPoints)}!\n"
     else
       val winners: ArrayDeque[ActorRef[Dispatch[Player.Message]]] = ArrayDeque()
-      for player <- players do
-        if scores(fetch(player, Player.Message.GetId(_))) == maxPoints then
-          winners.append(player)
+      for playerId <- playerIds do
+        if scores(playerId) == maxPoints then
+          winners.append(playerRefById(playerId))
       report ++= s"Shared victory between ${winners.map(fetch(_, Player.Message.GetName(_))).mkString(", ")} with ${maxPoints} point${pluralS(maxPoints)}!"
     resultReport = Some(report.result())
   }
@@ -323,7 +321,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
     
     private def checkHasTurn(): Try[Unit] =
       if newPlayerId != currentPlayerId then
-        return Failure(new TurnOrderException(playersById(newPlayerId), players(currentPlayerPos)))
+        return Failure(new TurnOrderException(playerRefById(newPlayerId), playerRefById(currentPlayerId)))
       Success(())
     
     private def checkNoUsedCard(): Try[Unit] =
@@ -351,7 +349,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
         val card = Try(hands(playerId).remove(this.posHand.i))
         if card.isFailure then return Failure(card.failed.get)
         usedCard = Some(card.get)
-        table.append(CardStack(card.get,playersById(playerId)))
+        table.append(CardStack(card.get,playerRefById(playerId)))
         postGameState()
         Success(())
       }
@@ -369,7 +367,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
           if usedCardCheck.isFailure then return usedCardCheck
 
           val playerHand = hands(playerId)
-          val result = Try((table(tablePos) + CardStack(playerHand(handPos))) (this.res, Some(playersById(playerId))))
+          val result = Try((table(tablePos) + CardStack(playerHand(handPos))) (this.res, Some(playerRefById(playerId))))
           if result.isFailure then return Failure(result.failed.get)
           table.update(tablePos, result.get)
           usedCard = Some(playerHand(handPos))
@@ -380,7 +378,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
         }
 
         def tableAndTable (tablePosMin: Int, tablePosMax: Int): Try[Unit] = {
-          val result = Try((table(tablePosMin) + table(tablePosMax)) (this.res, Some(playersById(playerId))))
+          val result = Try((table(tablePosMin) + table(tablePosMax)) (this.res, Some(playerRefById(playerId))))
           if result.isFailure then return Failure(result.failed.get)
           table.update(tablePosMin, result.get)
           table.remove(tablePosMax)
@@ -416,7 +414,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
           if usedCardCheck.isFailure then return usedCardCheck
 
           val playerHand = hands(playerId)
-          val result = Try((table(tablePos) % CardStack(playerHand(handPos))) (this.res, Some(playersById(playerId))))
+          val result = Try((table(tablePos) % CardStack(playerHand(handPos))) (this.res, Some(playerRefById(playerId))))
           if result.isFailure then return Failure(result.failed.get)
           table.update(tablePos, result.get)
           usedCard = Some(playerHand(handPos))
@@ -430,15 +428,15 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
           var result = {
             // table(tablePosMin) comes directly from the player hand this turn
             if table(tablePosMin).cards.size == 1 && table(tablePosMin).ownerId == Some(playerId) then
-              Try((table(tablePosMax) % table(tablePosMin)) (this.res, Some(playersById(playerId))))
+              Try((table(tablePosMax) % table(tablePosMin)) (this.res, Some(playerRefById(playerId))))
             // table(tablePosMax) comes directly from the player hand this turn
             else if table(tablePosMax).cards.size == 1 && table(tablePosMax).ownerId == Some(playerId) then
-              Try((table(tablePosMin) % table(tablePosMax)) (this.res, Some(playersById(playerId))))
+              Try((table(tablePosMin) % table(tablePosMax)) (this.res, Some(playerRefById(playerId))))
             // both CardStacks are pre-existing on the table
             else
-              var biResult = Try((table(tablePosMin) % table(tablePosMax)) (this.res, Some(playersById(playerId))))
+              var biResult = Try((table(tablePosMin) % table(tablePosMax)) (this.res, Some(playerRefById(playerId))))
               if biResult.isFailure then
-                biResult = Try((table(tablePosMax) % table(tablePosMin)) (this.res, Some(playersById(playerId))))
+                biResult = Try((table(tablePosMax) % table(tablePosMin)) (this.res, Some(playerRefById(playerId))))
               biResult
           }
           if result.isFailure then
@@ -477,7 +475,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
           if usedCardCheck.isFailure then return usedCardCheck
 
           val playerHand = hands(playerId)
-          val result = Try((table(tablePos) & CardStack(playerHand(handPos))) (this.res, Some(playersById(playerId))))
+          val result = Try((table(tablePos) & CardStack(playerHand(handPos))) (this.res, Some(playerRefById(playerId))))
           if result.isFailure then return Failure(result.failed.get)
           table.update(tablePos, result.get)
           usedCard = Some(playerHand(handPos))
@@ -487,7 +485,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
         }
 
         def tableAndTable (tablePosMin: Int, tablePosMax: Int): Try[Unit] = {
-          val result = Try((table(tablePosMin) & table(tablePosMax)) (this.res, Some(playersById(playerId))))
+          val result = Try((table(tablePosMin) & table(tablePosMax)) (this.res, Some(playerRefById(playerId))))
           if result.isFailure then return Failure(result.failed.get)
           table.update(tablePosMin, result.get)
           table.remove(tablePosMax)
