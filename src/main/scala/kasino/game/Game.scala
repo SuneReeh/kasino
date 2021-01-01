@@ -111,6 +111,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
   private val table: ArrayDeque[CardStack] = ArrayDeque()
   private val hands: Map[UUID, ArrayDeque[Card]] = Map.empty
   private val playerRefById: Map[UUID, ActorRef[Dispatch[Player.Message]]] = Map.empty
+  private val playerNameById: Map[UUID, String] = Map.empty
   private val playerIds: scala.collection.immutable.Seq[UUID] =
     scala.util.Random.shuffle(controllers).map{c =>
       val hand: ArrayDeque[Card] = ArrayDeque()
@@ -118,6 +119,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
       val player: ActorRef[Dispatch[Player.Message]] = context.spawn(Player(c, hand.view, table.view, deckSize, generatePlayerActions(playerId), this.context.self), "Player-"+playerId)
       hands.addOne(playerId, hand)
       playerRefById.addOne(playerId, player)
+      playerNameById.addOne(playerId, fetch(player, Player.Message.GetName(_)))
       claimedCards.addOne(playerId, ArrayDeque())
       clears.addOne(playerId, 0)
       playerId
@@ -132,7 +134,7 @@ class Game (parent: ActorRef[kasino.MainActor.Message], controllers: Iterable[Ac
   def currentPlayerId: UUID = playerIds(currentPlayerPos)
 
   /** The name of the current [[Player]]. */
-  def currentPlayerName: String = fetch(playerRefById(currentPlayerId), Player.Message.GetName(_))
+  def currentPlayerName: String = playerNameById(currentPlayerId)
 
   override def actOnMessage(message: Game.Message): KasinoActor[Game.Message] = {
     import Game.Message._
