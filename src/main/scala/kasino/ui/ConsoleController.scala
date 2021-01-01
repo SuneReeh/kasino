@@ -53,7 +53,8 @@ class ConsoleController(implicit context: ActorContext[Dispatch[Controller.Messa
           reportFailure(Failure(result.failed.get))
         else if action == Player.Action.End then
           hasTurn = false
-        else sendMessage(player, Player.Message.Act(getAction()))
+        if hasTurn then
+          sendMessage(player, Player.Message.Act(getAction()))
       //case EndTurn() => ()//hasTurn = false
       case ReportFailure(failed: Failure[Exception]) => this.reportFailure(failed)
       case GetId(replyTo: ActorRef[UUID]) => replyTo ! id
