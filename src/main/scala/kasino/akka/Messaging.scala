@@ -26,7 +26,8 @@ trait Message(val messageId: UUID = UUID.randomUUID())
 enum Dispatch[+T <: Message] {
   case Letter ( val message: T, val dispatcher: ActorRef[Try[Done]], val receiptTo: ActorRef[StatusReply[Done]]) 
   
-  case DispatchComplete( val messageId: UUID)
+  case IncomingComplete(val messageId: UUID)
+  case OutgoingComplete[+Origin <: Message, -Target <: Message](val messageId: UUID, val target: ActorRef[Letter[Target]]) extends Dispatch[Origin]
 }
 /*
 case class Letter[T <: Message] ( val message: T)(val receiptTo: ActorRef[StatusReply[Done]]) {
